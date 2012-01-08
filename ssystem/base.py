@@ -2,6 +2,9 @@
 
 """
 Base class that contains a number of important classes
+author:Subhodeep Moitra(smoitra@cs.cmu.edu)
+
+BSD License
 """
 
 
@@ -30,7 +33,13 @@ class profile :
 	""" The biochemical profile class """
 	def __init__(self) : 
 		self.isdefined = False;
-	def set_params(self.=,**args) :
+	def set_params(self,**args) :
 		pass
 
+class constraint : 
+	"""The experiment constraint class """
+	def __init__(self) : 
+		self.isdefined = False;
+	def set_params(self,**args) : 
+		pass
 
