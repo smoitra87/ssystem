@@ -19,9 +19,15 @@ spam_system(PyObject *self,PyObject *args) {
 
 }
 
+static PyMethodDef SpamMethods[] = {
+    {"system", spam_system, METH_VARARGS,
+	"Execute a Shell command"},
+    {NULL,NULL,0,NULL}  
+};
 
-int main() {
-
-  return 0;
+PyMODINIT_FUNC
+initspam(void)
+{
+  (void) Py_InitModule("spam",SpamMethods);
 }
 
