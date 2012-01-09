@@ -1,5 +1,5 @@
 from nose.tools import *
-import NAME
+import ssystem
 
 def setup() :
    print "Setting up!"
