@@ -10,3 +10,24 @@ def teardown() :
 def test_basic() : 
    print "A test ran!"
 
+def test_fail() :
+	print "I am going to Fail"
+	assert False
+
+def test_ignore() :
+	pass
+
+def Iamnotpariksha() :
+	pass
+
+def docpariksha() :
+	"""
+	I am a doc test
+	>>> print('Hello World')
+	Hello World
+	"""
+	pass
+
+istest(Iamnotpariksha)
+nottest(test_ignore)
+
