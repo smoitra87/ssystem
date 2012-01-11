@@ -8,6 +8,9 @@ BSD License
 """
 
 import numpy as np
+import pylab as pl
+from utility import calc_slope
+from scipy import interpolate
 
 class SSystem(object) : 
 	""" The ssystem class """
@@ -46,8 +49,15 @@ class Profile(object) :
 		self.time = np.array([sample['time'] for sample in samples])
 		self.var = np.array([sample['var'] for sample in samples])
 		self.sdev =np.array( [sample['sdev'] for sample in samples])
+		self.slopes,self.tcks = calc_slope(self)
 	def set_params(self,**args) :
 		pass
+	def plot_profile(self) : 
+		try :
+			pass
+		except AttributeError :
+			sys.stderr.writelines(
+			"Define Profile before trying to plot..!")
 
 class Constraint(object) : 
 	"""The experiment constraint class """
