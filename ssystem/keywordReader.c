@@ -78,12 +78,13 @@ readFile(const char *filename) /* this routine does not change */
 	int keyIndex,end=0;
 
 	// Init Python objects
-	PyObject *parsedict = NULL,*pydict,*pylist;
+	PyObject *parsedict = NULL,*pydict,*pylist,*pydictsample;
 	PyObject *pykey,*pyval,*pystr,*pyfloat,*pyint;
-	PyObject *pyvarlist;
+	PyObject *pyvarlist,*pyexplist;
 	char *key,*val;
 	parsedict = PyDict_New();	
 	pyvarlist = PyList_New(0);
+	pyexplist = PyList_New(0);
 
 	char formatVersion[100], type[100],date[100],url[100],rName[100],lvName[100],name[100];
 	char lvName2[100],lpName[100];
@@ -264,6 +265,18 @@ readFile(const char *filename) /* this routine does not change */
 		else if(!strcmp(keyword,"experiment")) {
 			fscanf(infile," has name = %s has %s",name,object);
 			printf("experiment_%d has name = %s has %s\n",keyIndex,name,object);
+			pydict = PyDict_New();
+			pystr = PyString_FromString(name);
+			PyDict_SetItemString(pydict,"name",pystr);
+			pystr = PyString_FromString(object);
+			PyDict_SetItemString(pydict,"datatype",pystr);
+			sprintf(buf,"%d",keyIndex);
+			pystr = PyString_FromString(buf);
+			pyint = PyInt_FromString(buf,NULL,10);
+			PyDict_SetItemString(pydict,"id",pyint);
+			pylist = PyList_New(0);
+			PyDict_SetItemString(pydict,"samples",pylist);
+			PyList_Append(pyexplist,pydict);
 		}
 		else if(!strcmp(keyword,"sample")) {
 			fscanf(infile," of experiment_%d",&index);
@@ -272,6 +285,16 @@ readFile(const char *filename) /* this routine does not change */
 			printf("has time = %lf\n",time);
 			fscanf(infile," has variable_ =");
 			printf("has variable_ =");
+			pydict = PyList_GetItem(pyexplist,index-1);
+			pylist = PyDict_GetItemString(pydict,"samples");
+			pydictsample = PyDict_New();
+			pyfloat = PyFloat_FromDouble(time);
+			PyDict_SetItemString(pydictsample,"time",pyfloat);
+			sprintf(buf,"%d",keyIndex);
+			pystr = PyString_FromString(buf);
+			pyint = PyInt_FromString(buf,NULL,10);
+			PyDict_SetItemString(pydictsample,"id",pyint);
+			
 			while(1) {
 				fscanf(infile," %lf",&value);
 				printf(" %lf",value);
@@ -286,6 +309,8 @@ readFile(const char *filename) /* this routine does not change */
 				if(endOfLine(infile)) break;
 			}
 			printf("\n");
+			PyList_Append(pylist,pydictsample);
+			
 		}
 		
 		if(!strcmp(keyword,"//")) {
@@ -317,6 +342,7 @@ readFile(const char *filename) /* this routine does not change */
 
 	//Adding remaining entries 
 	PyDict_SetItemString(parsedict,"variables",pyvarlist);
+	PyDict_SetItemString(parsedict,"experiments",pyexplist);
 	return parsedict;
 }
 
