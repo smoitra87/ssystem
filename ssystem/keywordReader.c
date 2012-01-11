@@ -29,6 +29,34 @@ int main(int argc, char* argv[]) {
 }
 
 */
+
+PyObject* readFile(const char *fileame);
+
+
+static PyObject* 
+cparser_parse(PyObject* self, PyObject* args){
+	const char *fname;
+	PyObject *parsedict;
+	
+	if(!PyArg_ParseTuple(args,"s",&fname))
+		return NULL;
+	
+	parsedict = readFile(fname);
+	return parsedict;
+}
+
+static PyMethodDef CParserMethods[] = {
+	{"parse",cparser_parse, METH_VARARGS,
+	"Parse the experiment file and pass it to Python"},
+	{NULL,NULL,0,NULL}
+};
+
+PyMODINIT_FUNC
+initcparser(void) {
+
+	(void) Py_InitModule("cparser",CParserMethods);
+}
+
 int
 endOfLine(FILE *infile) // checks if we have eol in front of us
 {
@@ -40,7 +68,7 @@ endOfLine(FILE *infile) // checks if we have eol in front of us
 }
 
 
-int
+PyObject*
 readFile(const char *filename) /* this routine does not change */
 {
 	FILE *infile;
@@ -48,6 +76,13 @@ readFile(const char *filename) /* this routine does not change */
 	char  *keyword, *indexString;
 	char keyToken[100];
 	int keyIndex,end=0;
+
+	// Init Python objects
+	PyObject *parsedict = NULL,*pydict,*pylist;
+	PyObject *pykey,*pyval,*pystr;
+	char *key,*val;
+	parsedict = PyDict_New();	
+
 
 	char formatVersion[100], type[100],date[100],url[100],rName[100],lvName[100],name[100];
 	char lvName2[100],lpName[100];
@@ -59,7 +94,7 @@ readFile(const char *filename) /* this routine does not change */
 	char problemName[40];
 	
 	infile=fopen(filename,"r");
-	if(!infile) {printf("Error: file ""%s"" does not exist!\n",filename); return 0;}
+	if(!infile) {printf("Error: file ""%s"" does not exist!\n",filename); return NULL;}
 
 	/* Ununused variables - maybe used later */
 	// int lines;
@@ -92,6 +127,8 @@ readFile(const char *filename) /* this routine does not change */
 		if(!strcmp(keyword,"begin")) {
 			fscanf(infile," problem %s",problemName);
 			printf("begin problem %s\n",problemName);
+			pystr= PyString_FromString(problemName);
+			PyDict_SetItemString(parsedict,"ProblemName",pystr);
 			end=0;
 		}
 		else if(!strcmp(keyword,"end")) {
@@ -252,35 +289,12 @@ readFile(const char *filename) /* this routine does not change */
 
 	}
 	fclose(infile);
-	return 1;
+	return parsedict;
 }
 
 
 
 
-static PyObject* 
-cparser_parse(PyObject* self, PyObject* args){
-	const char *fname;
-	int sts;
-	
-	if(!PyArg_ParseTuple(args,"s",&fname))
-		return NULL;
-	
-	sts = readFile(fname);
-	return Py_BuildValue("i",sts);
-}
-
-static PyMethodDef CParserMethods[] = {
-	{"parse",cparser_parse, METH_VARARGS,
-	"Parse the experiment file and pass it to Python"},
-	{NULL,NULL,0,NULL}
-};
-
-PyMODINIT_FUNC
-initcparser(void) {
-
-	(void) Py_InitModule("cparser",CParserMethods);
-}
 
 
 
