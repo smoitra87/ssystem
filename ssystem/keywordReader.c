@@ -79,7 +79,7 @@ readFile(const char *filename) /* this routine does not change */
 
 	// Init Python objects
 	PyObject *parsedict = NULL,*pydict,*pylist;
-	PyObject *pykey,*pyval,*pystr;
+	PyObject *pykey,*pyval,*pystr,*pyfloat,*pyint;
 	PyObject *pyvarlist;
 	char *key,*val;
 	parsedict = PyDict_New();	
@@ -93,7 +93,7 @@ readFile(const char *filename) /* this routine does not change */
 	double lb,ub,lambda,time,value;
 	
 	char problemName[40];
-	
+	char buf[100];
 	infile=fopen(filename,"r");
 	if(!infile) {printf("Error: file ""%s"" does not exist!\n",filename); return NULL;}
 
@@ -196,6 +196,10 @@ readFile(const char *filename) /* this routine does not change */
 			PyDict_SetItemString(pydict,"name",pystr);
 			pystr = PyString_FromString(property);
 			PyDict_SetItemString(pydict,"property",pystr);
+			sprintf(buf,"%d",keyIndex);
+			pystr = PyString_FromString(buf);
+			pyint = PyInt_FromString(buf,NULL,10);
+			PyDict_SetItemString(pydict,"id",pyint);
 			PyList_Append(pyvarlist,pydict);
 		}
 		else if(!strcmp(keyword,"range")) {
@@ -246,6 +250,14 @@ readFile(const char *filename) /* this routine does not change */
 				printf("has equation = %s\n",equation);
 				printf("has lambda = %lf\n",lambda);
 				//printf("\n");
+				pydict = PyDict_New();
+				pystr = PyString_FromString(errorType);
+				PyDict_SetItemString(pydict,"type",pystr);
+				pystr = PyString_FromString(equation);
+				PyDict_SetItemString(pydict,"equation",pystr);
+				pyfloat = PyFloat_FromDouble(lambda);
+				PyDict_SetItemString(pydict,"lambda",pyfloat);
+				PyDict_SetItemString(parsedict,"errorfunc",pydict);
 			}
 			//else discard rest of row...
 		}
