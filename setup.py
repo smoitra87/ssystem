@@ -17,11 +17,16 @@ from distutils.core import setup, Extension
 
 #setup(**config)
 
-module1 = Extension('spam',sources=['ssystem/spammodule.c'])
 
-setup(name='spam',
-	version=1.0,
-	description='Just a spam module',
-	ext_modules = [module1])
+setup(name='S-Systems using ALR',
+	version='0.1.0',
+	url = 'http://github.com/smoitra87/ssystem',
+	author='Subhodeep Moitra',
+	author_email='smoitra@cs.cmu.edu',
+	license='BSD License',
+	description='Solves S-system problems using ALR',
+	packages=['ssystem'],
+	ext_modules=[Extension('ssystem.cparser',
+	['ssystem/keywordReader.c'])])
 
 

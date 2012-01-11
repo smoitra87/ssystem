@@ -1,0 +1,24 @@
+To install do the following  : 
+
+Pre-requisites : 
+python
+numpy
+scipy
+scikit-learn
+nose for testing
+
+Installation of prerequisites : 
+
+
+
+Installation of source:
+
+$ cd /path/to/ssystem/root/directory
+$ python setup.py build
+$ python setup.py install
+
+
+For dev and test
+$ cd /path/to/ssystem/root/directory
+$ python setup.py build_ext --inplace
+$ nosetests
