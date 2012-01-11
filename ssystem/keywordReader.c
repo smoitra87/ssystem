@@ -80,9 +80,10 @@ readFile(const char *filename) /* this routine does not change */
 	// Init Python objects
 	PyObject *parsedict = NULL,*pydict,*pylist;
 	PyObject *pykey,*pyval,*pystr;
+	PyObject *pyvarlist;
 	char *key,*val;
 	parsedict = PyDict_New();	
-
+	pyvarlist = PyList_New(0);
 
 	char formatVersion[100], type[100],date[100],url[100],rName[100],lvName[100],name[100];
 	char lvName2[100],lpName[100];
@@ -128,7 +129,7 @@ readFile(const char *filename) /* this routine does not change */
 			fscanf(infile," problem %s",problemName);
 			printf("begin problem %s\n",problemName);
 			pystr= PyString_FromString(problemName);
-			PyDict_SetItemString(parsedict,"ProblemName",pystr);
+			PyDict_SetItemString(parsedict,"problemname",pystr);
 			end=0;
 		}
 		else if(!strcmp(keyword,"end")) {
@@ -145,14 +146,20 @@ readFile(const char *filename) /* this routine does not change */
 		else if(!strcmp(keyword,"type")) {
 			fscanf(infile," = %s",type);
 			printf("type = %s\n",type);
+			pystr = PyString_FromString(type);
+			PyDict_SetItemString(parsedict,"type",pystr);
 		}
 		else if(!strcmp(keyword,"date")) {
 			fscanf(infile," = %s",date);
 			printf("date = %s\n",date);
+			pystr = PyString_FromString(date);
+			PyDict_SetItemString(parsedict,"date",pystr);
 		}
 		else if(!strcmp(keyword,"url")) {
 			fscanf(infile," = %s",url);
 			printf("url = %s\n",url);
+			pystr = PyString_FromString(url);
+			PyDict_SetItemString(parsedict,"url",pystr);
 		}
 		else if(!strcmp(keyword,"date")) {
 			fscanf(infile," = %s",date);
@@ -184,6 +191,12 @@ readFile(const char *filename) /* this routine does not change */
 		else if(!strcmp(keyword,"variable")) {
 			fscanf(infile," has name = %s is %s",name,property);
 			printf("variable_%d has name = %s is %s\n",keyIndex,name,property);
+			pydict = PyDict_New();
+			pystr = PyString_FromString(name);
+			PyDict_SetItemString(pydict,"name",pystr);
+			pystr = PyString_FromString(property);
+			PyDict_SetItemString(pydict,"property",pystr);
+			PyList_Append(pyvarlist,pydict);
 		}
 		else if(!strcmp(keyword,"range")) {
 			fscanf(infile," has lowerBound = %lf has upperBound = %lf",&lb,&ub);
@@ -289,6 +302,9 @@ readFile(const char *filename) /* this routine does not change */
 
 	}
 	fclose(infile);
+
+	//Adding remaining entries 
+	PyDict_SetItemString(parsedict,"variables",pyvarlist);
 	return parsedict;
 }
 
