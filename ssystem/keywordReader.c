@@ -80,7 +80,7 @@ readFile(const char *filename) /* this routine does not change */
 	// Init Python objects
 	PyObject *parsedict = NULL,*pydict,*pylist,*pydictsample;
 	PyObject *pykey,*pyval,*pystr,*pyfloat,*pyint;
-	PyObject *pyvarlist,*pyexplist;
+	PyObject *pyvarlist,*pyexplist,*pyvallist;
 	char *key,*val;
 	parsedict = PyDict_New();	
 	pyvarlist = PyList_New(0);
@@ -295,20 +295,30 @@ readFile(const char *filename) /* this routine does not change */
 			pyint = PyInt_FromString(buf,NULL,10);
 			PyDict_SetItemString(pydictsample,"id",pyint);
 			
+			pyvallist = PyList_New(0);
 			while(1) {
 				fscanf(infile," %lf",&value);
 				printf(" %lf",value);
+				pyfloat = PyFloat_FromDouble(value);
+				PyList_Append(pyvallist,pyfloat);			
 				if(endOfLine(infile)) break;
 			}
+			PyDict_SetItemString(pydictsample,"var",pyvallist);
 			printf("\n");
 			fscanf(infile," has sdev of variable_ =");
 			printf("has sdev of variable_ =");
+
+			pyvallist = PyList_New(0);
 			while(1) {
 				fscanf(infile," %lf",&value);
 				printf(" %lf",value);
+				pyfloat = PyFloat_FromDouble(value);
+				PyList_Append(pyvallist,pyfloat);
 				if(endOfLine(infile)) break;
 			}
+			PyDict_SetItemString(pydictsample,"sdev",pyvallist);
 			printf("\n");
+			
 			PyList_Append(pylist,pydictsample);
 			
 		}
