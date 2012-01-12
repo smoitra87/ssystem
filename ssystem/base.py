@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env 
 
 """
 Base class that contains a number of important classes
@@ -9,7 +9,7 @@ BSD License
 
 import numpy as np
 import pylab as pl
-from utility import *
+from utility import dbglevel, calc_slope
 from scipy import interpolate
 import pdb, sys
 
