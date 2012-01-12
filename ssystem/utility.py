@@ -3,6 +3,9 @@
 import numpy as np
 from scipy import interpolate
 
+dbglevel = 1
+
+
 def calc_slope(profile) :
 	""" 
 	Accepts a profile class object and returns the slopes calculated
@@ -16,6 +19,6 @@ def calc_slope(profile) :
 	f2 = lambda(tck):interpolate.splev(time,tck,der=1) 
 	tcks = (map(f1,var.T)) # params
 	#Calculate the derivatives
-	derivatives = np.array(map(f2,tcks))
+	derivatives = np.array(map(f2,tcks)).T
 	return derivatives,tcks	
 	
