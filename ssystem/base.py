@@ -52,6 +52,7 @@ class Profile(object) :
 		self.var = np.array([sample['var'] for sample in samples])
 		self.sdev =np.array( [sample['sdev'] for sample in samples])
 		self.slopes,self.tcks = calc_slope(self)
+		self.n_sample, self.n_var = self.var.shape
 	def set_params(self,**args) :
 		pass
 	def plot_profile(self) : 
@@ -60,8 +61,21 @@ class Profile(object) :
 			#Function handle for generating plot interpolate points
 			f1 = lambda(tck) : interpolate.splev(xnew,tck)
 			ynew = np.array(map(f1,self.tcks)).T
+			ax = pl.gca()
+			color_list = ['r','g','b','c','y']
+			ax.set_color_cycle(color_list)
 			pl.plot(self.time,self.var,'x',xnew,ynew);
-			#pl.legend()
+			# plot arrows 
+			arrow_scale = 40.0
+			dx = (self.time[-1]-self.time[0])/arrow_scale;
+			dy = self.slopes * dx
+			print "slopes shape", self.slopes.shape
+			for ii in range(self.n_sample) : 
+				t = self.time[ii]
+				X = self.var[ii,:]
+				DY = dy[:,ii]
+				for jj in range(self.n_var) :
+					pl.arrow(t,X[jj],dx,DY[jj],linewidth=1)
 			pl.title('Plot of spline fitted biochem profile vs time')
 			pl.xlabel('time')
 			pl.ylabel('profile')
