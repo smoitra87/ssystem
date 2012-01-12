@@ -11,6 +11,8 @@ import numpy as np
 import pylab as pl
 from utility import calc_slope
 from scipy import interpolate
+import pdb, sys
+
 
 class SSystem(object) : 
 	""" The ssystem class """
@@ -54,10 +56,21 @@ class Profile(object) :
 		pass
 	def plot_profile(self) : 
 		try :
-			pass
+			xnew = np.linspace(self.time[0],self.time[-1],num=50)
+			#Function handle for generating plot interpolate points
+			f1 = lambda(tck) : interpolate.splev(xnew,tck)
+			ynew = np.array(map(f1,self.tcks)).T
+			pl.plot(self.time,self.var,'x',xnew,ynew);
+			#pl.legend()
+			pl.title('Plot of spline fitted biochem profile vs time')
+			pl.xlabel('time')
+			pl.ylabel('profile')
+			pl.axis('tight')
+			pl.show()
 		except AttributeError :
 			sys.stderr.writelines(
 			"Define Profile before trying to plot..!")
+			raise
 
 class Constraint(object) : 
 	"""The experiment constraint class """

@@ -11,8 +11,8 @@ def test_basic() :
    print "A test ran!"
 
 def test_fail() :
-	print "I am going to Fail"
-	assert False
+	print "I am going to pass"
+	assert True
 
 def test_ignore() :
 	pass
