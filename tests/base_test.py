@@ -4,7 +4,7 @@ from nose.tools import *
 from ssystem.base import SSystem, Profile, Experiment, Constraint 
 import numpy.testing as npt
 import numpy as np
-from ssystem.utility import dbglevel
+from ssystem.utility import dbglevel, same_dict
 
 def gen_sample(n) :
 	""" Generate n samples """
@@ -63,8 +63,10 @@ def gen_ssystem(n) :
 		},
 		'variables' : [var for var in gen_vars(5)],
 		'experiments' : experiments,
-		'constraint' : None
-	}
+		'modelspace': gen_modelspace(),
+		'initbound': gen_initbound(),
+		'initsol' : gen_initsol()
+	} 
 	return ss
 		
 
@@ -132,17 +134,6 @@ class TestExperiment(object) :
 
 	def set_exp(self,_exp) :
 		self.exp = _exp
-
-class TestConstraint(object) :
-	def setUp(self) : 
-		pass
-	
-	def tearDown(self) : 
-		pass
-	
-	def test_keys(self) : 
-		pass
-	
 	
 class TestSSystem(object) :
 	def setUp(self) : 
@@ -194,7 +185,88 @@ class TestSSystem(object) :
 		exp_test.test_samples()
 
 	def test_constraint(self) : 
+		ss = self.ss
+		cons = ss.constraint
+		cons_test = TestConstraint()
+		cons_test.set_constraint(cons)
+		cons_test.test_modelspace()
+		cons_test.test_initsol()
+		
+
+def gen_modelspace():
+	modelspace = {
+		'alpha': {
+			'defaultLowerBound' : 0.0,
+			'defaultUpperBound' : 15.0
+		},	
+		'beta': {
+			'defaultLowerBound' : 0.0,
+			'defaultUpperBound' : 15.0
+		},
+		'g': {
+			'defaultLowerBound' : -3.0,
+			'defaultUpperBound' : 3.0
+		},
+		'h': {
+			'defaultLowerBound' : -3.0,
+			'defaultUpperBound' : 3.0
+		}
+	}
+	return modelspace
+
+def gen_initbound() :
+	initbound = {
+		'alpha' : {},
+		'beta' : {},
+		'g' : {},
+		'h' : {}
+	}
+	return initbound
+
+def gen_initsol() :
+	initsol = {
+		'alpha' : {
+			'defaultInitialValue' : 1.0
+		},
+		'beta' : {
+			'defaultInitialValue' : 1.0
+		},
+		'g': {
+			'defaultInitiValue' : 0.0
+		},
+		'h' : {
+			'defaultInitialValue' : 0.0
+		}
+	}
+	return initsol
+
+class TestConstraint(object) :
+	def setUp(self) : 
+		modelspace = gen_modelspace()
+		initbound = gen_initbound()
+		initsol = gen_initsol()
+		self.constraint = Constraint(modelspace,initbound,initsol)
+	
+	def tearDown(self) : 
 		pass
+	
+	def test_modelspace(self) : 
+		test = gen_modelspace()
+		cons = self.constraint.modelspace
+		assert same_dict(test['alpha'],cons.alpha)
+		assert same_dict(test['beta'],cons.beta)
+		assert same_dict(test['g'],cons.g)
+		assert same_dict(test['h'],cons.h)
+
+	def set_constraint(self,_cons) :
+		self.constraint = _cons
+	def test_initsol(self) : 
+		test = gen_initsol()
+		cons = self.constraint.initsol
+		assert same_dict(test['alpha'],cons.alpha)
+		assert same_dict(test['beta'],cons.beta)
+		assert same_dict(test['g'],cons.g)
+		assert same_dict(test['h'],cons.h)
 
 
 # Dummy Test Case

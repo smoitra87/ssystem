@@ -21,4 +21,10 @@ def calc_slope(profile) :
 	#Calculate the derivatives
 	derivatives = np.array(map(f2,tcks)).T
 	return derivatives,tcks	
-	
+
+def same_dict(x,y):	
+	"""
+	Accepts two dicts x and y ; returns if they are the same 
+	"""
+	n_common = len(set(x.items()) & set(y.items()) )
+	return len(x)==len(y) and n_common==len(x)
