@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
 */
 
 PyObject* readFile(const char *fileame);
-
+void build_cons(PyObject* parsedict);
 
 static PyObject* 
 cparser_parse(PyObject* self, PyObject* args){
@@ -57,6 +57,57 @@ initcparser(void) {
 	(void) Py_InitModule("cparser",CParserMethods);
 }
 
+//Build an empty constraint dictionary
+void build_cons(PyObject *parsedict) {
+	PyObject *pycondict, *pydict;
+	
+	char cons_name[][20] = {"modelspace","initbound","initsol"};
+	char param_name[][10] = {"alpha","beta","g","h"};
+	int i,j;
+	for(j=0;j<3;j++) {
+		pycondict = PyDict_New();
+		PyDict_SetItemString(parsedict,cons_name[j],pycondict);
+		for(i=0;i<4;i++) {
+			pydict = PyDict_New();
+			PyDict_SetItemString(pycondict,param_name[i],pydict);	
+		}
+	}
+	return;		
+}
+
+
+void assign_cons(PyObject *parsedict,const char* param,
+				const char* keyword, double val) {
+	PyObject *pycondict,*pydict,*pyfloat;
+	if(!strcmp(keyword,"defaultLowerBound")){
+		pycondict = PyDict_GetItemString(parsedict,"modelspace");
+		pydict = PyDict_GetItemString(pycondict,param);
+		pyfloat = PyFloat_FromDouble(val);
+		PyDict_SetItemString(pydict,keyword,pyfloat);
+	} 
+	else if(!strcmp(keyword,"defaultUpperBound")) {
+		pycondict = PyDict_GetItemString(parsedict,"modelspace");
+		pydict = PyDict_GetItemString(pycondict,param);
+		pyfloat = PyFloat_FromDouble(val);
+		PyDict_SetItemString(pydict,keyword,pyfloat);
+
+	}
+	else if(!strcmp(keyword,"defaultInitialValue")) {
+		pycondict = PyDict_GetItemString(parsedict,"initsol");
+		pydict = PyDict_GetItemString(pycondict,param);
+		pyfloat = PyFloat_FromDouble(val);
+		PyDict_SetItemString(pydict,keyword,pyfloat);
+
+	}
+	else{
+		fprintf(stderr,"keyword %s does not make sense to constraint!\n",
+		keyword);
+		return;
+	}
+			
+	return ;
+}
+
 int
 endOfLine(FILE *infile) // checks if we have eol in front of us
 {
@@ -80,11 +131,13 @@ readFile(const char *filename) /* this routine does not change */
 	// Init Python objects
 	PyObject *parsedict = NULL,*pydict,*pylist,*pydictsample;
 	PyObject *pykey,*pyval,*pystr,*pyfloat,*pyint;
-	PyObject *pyvarlist,*pyexplist,*pyvallist;
+	PyObject *pyvarlist,*pyexplist,*pyvallist,*pycondict;
+	
 	char *key,*val;
 	parsedict = PyDict_New();	
 	pyvarlist = PyList_New(0);
 	pyexplist = PyList_New(0);
+	build_cons(parsedict); // Add empty constraints
 
 	char formatVersion[100], type[100],date[100],url[100],rName[100],lvName[100],name[100];
 	char lvName2[100],lpName[100];
@@ -328,21 +381,25 @@ readFile(const char *filename) /* this routine does not change */
 			//Scan the constraints
 			fscanf(infile," has %s = %lf",cons,&cons_val);
 			printf("alpha constraint %s has value %lf",cons,cons_val);
+			assign_cons(parsedict,"alpha",cons,cons_val);
 		}
 		else if(!strcmp(keyword,"beta")) {
 			//Scan the constraints
 			fscanf(infile," has %s = %lf",cons,&cons_val);
 			printf("beta constraint %s has value %lf",cons,cons_val);
+			assign_cons(parsedict,"beta",cons,cons_val);
 		}
 		else if(!strcmp(keyword,"g")) {
 			//Scan the constraints
 			fscanf(infile," has %s = %lf",cons,&cons_val);
 			printf("g constraint %s has value %lf",cons,cons_val);
+			assign_cons(parsedict,"g",cons,cons_val);
 		}
 		else if(!strcmp(keyword,"h")) {
 			//Scan the constraints
 			fscanf(infile," has %s = %lf",cons,&cons_val);
 			printf("h constraint %s has value %lf",cons,cons_val);
+			assign_cons(parsedict,"h",cons,cons_val);
 		}
 		if(!strcmp(keyword,"//")) {
 			fgets(rowbuffer,999,infile);  // read rest of line
