@@ -90,6 +90,8 @@ readFile(const char *filename) /* this routine does not change */
 	char lvName2[100],lpName[100];
 	char property[100],reactionType[100],varSetX1[100],rangeK1[100],varSetX2[100],object[100];
 	char errorType[100],equation[100];
+	char cons[30];
+	double cons_val;
 	int varIndex,index,lvIndex,lvIndex2,lpIndex;
 	double lb,ub,lambda,time,value;
 	
@@ -322,7 +324,26 @@ readFile(const char *filename) /* this routine does not change */
 			PyList_Append(pylist,pydictsample);
 			
 		}
-		
+		else if(!strcmp(keyword,"alpha")) {
+			//Scan the constraints
+			fscanf(infile," has %s = %lf",cons,&cons_val);
+			printf("alpha constraint %s has value %lf",cons,cons_val);
+		}
+		else if(!strcmp(keyword,"beta")) {
+			//Scan the constraints
+			fscanf(infile," has %s = %lf",cons,&cons_val);
+			printf("beta constraint %s has value %lf",cons,cons_val);
+		}
+		else if(!strcmp(keyword,"g")) {
+			//Scan the constraints
+			fscanf(infile," has %s = %lf",cons,&cons_val);
+			printf("g constraint %s has value %lf",cons,cons_val);
+		}
+		else if(!strcmp(keyword,"h")) {
+			//Scan the constraints
+			fscanf(infile," has %s = %lf",cons,&cons_val);
+			printf("h constraint %s has value %lf",cons,cons_val);
+		}
 		if(!strcmp(keyword,"//")) {
 			fgets(rowbuffer,999,infile);  // read rest of line
 			printf("//%s",rowbuffer);
