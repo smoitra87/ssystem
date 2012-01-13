@@ -129,6 +129,19 @@ class TestExperiment(object) :
 		test_prof.test_var()
 		test_prof.test_sdev()
 		test_prof.test_slopes()
+
+	def set_exp(self,_exp) :
+		self.exp = _exp
+
+class TestConstraint(object) :
+	def setUp(self) : 
+		pass
+	
+	def tearDown(self) : 
+		pass
+	
+	def test_keys(self) : 
+		pass
 	
 	
 class TestSSystem(object) :
@@ -147,6 +160,40 @@ class TestSSystem(object) :
 		eq_(ss.url,"http://www.cs.cmu.edu/~subhodee")
 	
 	def test_variables(self) :
+		# number of vars is 5
+		ss = self.ss
+		var_list = [
+		{'id':1,'name':'x1','property':'dependent'},
+		{'id':2,'name':'x2','property':'dependent'},
+		{'id':3,'name':'x3','property':'dependent'},
+		{'id':4,'name':'x4','property':'dependent'},
+		{'id':5,'name':'x5','property':'dependent'}
+		]
+		assert len(var_list) == len(ss.variables)
+		for ii in range(len(var_list)) :
+			var_test = var_list[ii]
+			var_ss = ss.variables[ii]
+			assert len(var_ss) == len(var_test)
+			eq_(var_ss['id'],var_test['id'])
+			eq_(var_ss['name'],var_test['name'])
+			eq_(var_ss['property'],var_test['property'])
+
+	def test_errorfunc(self) : 
+		ss = self.ss
+		erf = ss.errorfn
+		eq_(erf['equation'],'-L+lambda*K')
+		assert_almost_equal(erf['lambda'],1.0)
+		eq_(erf['type'],'minusLogLikelihoodPlusLambdaK')
+
+	def test_experiment(self) :
+		ss = self.ss
+		exp = ss.experiments[0]
+		exp_test = TestExperiment()
+		exp_test.set_exp(exp)
+		exp_test.test_keys()
+		exp_test.test_samples()
+
+	def test_constraint(self) : 
 		pass
 
 
