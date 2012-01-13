@@ -24,7 +24,10 @@ class SSystem(object) :
 		self.variables = data['variables']
 		self.errorfn = data['errorfunc']
 		self.experiments = [Experiment(exp) for exp in data['experiments']]
-		self.constraint = None;
+		modelspace = data['modelspace']
+		initbound = data['initbound']
+		initsol = data['initsol']
+		self.constraint = Constraint(modelspace,initbound,initsol)
 	def set_params(self,**args) :
 		pass
 
@@ -89,8 +92,40 @@ class Profile(object) :
 
 class Constraint(object) : 
 	"""The experiment constraint class """
-	def __init__(self) : 
-		self.isdefined = False;
+	def __init__(self,modelspace,initbound,initsol) : 
+		self.modelspace = ModelSpace(modelspace)
+		self.initbound = InitBound(initbound)
+		self.initsol = InitSol(initsol)
 	def set_params(self,**args) : 
 		pass
 
+
+class ModelSpace(object) :
+	""" The Model space class """
+	def __init__(self,modelspace):
+		self.alpha = modelspace['alpha'];
+		self.beta = modelspace['beta'];
+		self.g = modelspace['g']
+		self.h = modelspace['h']
+	def set_params(self,**args) : 
+		pass
+
+class InitBound(object) :
+	""" The Initial Bounds on variables class """
+	def __init__(self,initbound) :
+		self.alpha = initbound['alpha']
+		self.beta = initbound['beta']
+		self.g = initbound['g']
+		self.h = initbound['h']
+	def set_params(self,**args) : 
+		pass
+
+class InitSol(object) :
+	""" The Initial Solution class """
+	def __init__(self,initsol) : 
+		self.alpha = initsol['alpha']
+		self.beta = initsol['beta']
+		self.g = initsol['g']
+		self.h = initsol['h']
+	def set_params(self,**args) : 
+		pass
