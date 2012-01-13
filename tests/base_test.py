@@ -52,10 +52,10 @@ def gen_ssystem(n) :
 	""" Generate an ssystem instance """
 	experiments = [exp for exp in gen_experiment(n)]
 	ss = {
-		'name' : 'ss_dummy',
+		'problemname' : 'ss_dummy',
 		'type' :  'SSystem',
 		'date' : '01/01/12', 
-		'url' : 'http://www/cs.cmu.edu/~subhodee',
+		'url' : 'http://www.cs.cmu.edu/~subhodee',
 		'errorfunc' : {
 			'equation': '-L+lambda*K',
 			'lambda': 1.0,
@@ -132,13 +132,21 @@ class TestExperiment(object) :
 	
 	
 class TestSSystem(object) :
-	def SetUp(self) : 
-		pass
+	def setUp(self) : 
+		ss_dict = gen_ssystem(1);
+		self.ss = SSystem(ss_dict)
 	
 	def tearDown(self) :
 		pass
 	
 	def test_keys(self) :
+		ss = self.ss
+		assert ss.name == 'ss_dummy'
+		assert ss.systype == 'SSystem'
+		eq_(ss.date,"01/01/12")
+		eq_(ss.url,"http://www.cs.cmu.edu/~subhodee")
+	
+	def test_variables(self) :
 		pass
 
 
