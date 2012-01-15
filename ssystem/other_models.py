@@ -84,6 +84,17 @@ class Chou2006(object):
 			}
 		}
 		return initsol
+	
+	def _calc_slope_var(self,begin,end,nPoints) :
+		""" Calculat the slope and X for s-system """
+		pass
+
+	def get_ssytem(self) : 
+		return self
+
+	def dummy_f1(self) : 
+		return self
+
 
 	
 if __name__ == '__main__' : 
