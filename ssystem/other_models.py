@@ -1,13 +1,13 @@
 """ This class generates the diff eqn specified by the Chou 2006 model """
 
-from base import SSystem
+from base import SSystem, Experiment, Profile
 import numpy as np
 import pylab as pl
 from scipy.integrate import ode
 from utility import dbglevel
 
 
-class Chou2006(object):
+class Chou2006(SSystem):
 	""" This class defines the Chou 2006 model
 	It is a sublass of the SSystem class
 	Several experiments are generated with varying number of points, 
@@ -51,38 +51,8 @@ class Chou2006(object):
 		]
 		}		
 		self.y0,self.t0 = [1.4,2.7,1.2,0.4],0 
-		self._integrate(5,50)
+		self._calc_slope_var(0,5,50)
 	
-	def _integrate(self,t_end,nPoints) : 	
-		dy = self._dy # set the gradient function
-		y0 = self.y0 # start point
-		t0 = self.t0 # start time (doesn't really matter)
-		ss_params = self.ss_params # params of equations
-		r = ode(dy).set_integrator('vode',method='bdf',order=15)
-		r.set_initial_value(y0,t0).set_f_params(self.ss_params)
-		
-		dt = (t_end+0.) / nPoints
-		t,y = [t0],[y0]
-		
-		# The 2*dt is to make sure that only nPoints are generated
-		while r.successful() and r.t < t_end-2*dt : 
-		    r.integrate(r.t+dt)
-		    #print r.t,r.y
-		    t.append(r.t)
-		    y.append(r.y)
-		
-		# Define the coeffs		
-		self._t = np.array(t)
-		self._y = np.array(y)
-
-		if(dbglevel > 2) :
-			ax = pl.gca()
-			ax.set_color_cycle(['r','b','g','c'])
-			pl.plot(t,y,'.')
-			pl.xlabel('Time')
-			pl.ylabel('Concentration')
-			pl.title('Plot of Conc vs time for canon Chou 2006 ssystem')
-			pl.show()	
 
 	def _dy(self,t,y,ss) :
 	    slope = []
@@ -150,12 +120,44 @@ class Chou2006(object):
 		}
 		return initsol
 	
-	def _calc_slope_var(self,begin,end,nPoints) :
-		""" Calculat the slope and X for s-system """
-		pass
+	def _calc_slope_var(self,begin,t_end,nPoints) :
+		""" Calculate the slope and X for s-system """
+		dy = self._dy # set the gradient function
+		y0 = self.y0 # start point
+		t0 = self.t0 # start time (doesn't really matter)
+		ss_params = self.ss_params # params of equations
+		r = ode(dy).set_integrator('vode',method='bdf',order=15)
+		r.set_initial_value(y0,t0).set_f_params(ss_params)
+		
+		dt = (t_end+0.) / nPoints
+		t,y = [t0],[y0]
+		slope = [dy(0,y0,ss_params)]
+		
+		# The 2*dt is to make sure that only nPoints are generated
+		while r.successful() and r.t < t_end-2*dt : 
+			r.integrate(r.t+dt)
+			#print r.t,r.y
+			t.append(r.t)
+			y.append(r.y)
+			slope.append(dy(r.t,r.y,ss_params))
+		
+		# Define the coeffs		
+		self._t = np.array(t)
+		self._y = np.array(y)
+		self._slope = np.array(slope)
+
+		if(dbglevel > 2) :
+			ax = pl.gca()
+			ax.set_color_cycle(['r','b','g','c'])
+			pl.plot(t,y,'.')
+			pl.xlabel('Time')
+			pl.ylabel('Concentration')
+			pl.title('Plot of Conc vs time for canon Chou 2006 ssystem')
+			pl.show()	
+	
 
 	def get_ssytem(self) : 
-		return self
+		return self.ss
 
 	def dummy_f1(self) : 
 		return self
