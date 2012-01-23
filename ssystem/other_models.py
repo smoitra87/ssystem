@@ -16,24 +16,9 @@ class Chou2006(SSystem):
 	get_ssystem() method
 	
 	"""
-	def __init__(self) : 
-		ss = {
-			'problemname' : 'chou2006',
-			'type' :  'SSystem',
-			'date' : '01/01/12', 
-			'url' : 'http://www.cs.cmu.edu/~subhodee',
-			'errorfunc' : {
-				'equation': '-L+lambda*K',
-				'lambda': 1.0,
-				'type': 'minusLogLikelihoodPlusLambdaK'			
-			},
-			'variables' : [var for var in self._gen_variables(4)],
-			'experiments' : None,
-			'modelspace': self._gen_modelspace(),
-			'initbound': self._gen_initbound(),
-			'initsol' : self._gen_initsol()
-		}
-		self.ss_dict = ss
+	def __init__(self) :
+		""" Initialize the Chou 2006 class """ 
+		# True params of the S-system
 		self.ss_params = {
 		'alpha' : [12,8,3,2],
 		'beta' : [10,3,5,6],
@@ -50,9 +35,29 @@ class Chou2006(SSystem):
 		    [0,0,0,0.8]
 		]
 		}		
+		# Initial points of the s-system
 		self.y0,self.t0 = [1.4,2.7,1.2,0.4],0 
-		self._calc_slope_var(0,5,50)
-	
+		self._t,self._y,self._slope = self._calc_slope_var(0,5,50)
+		# define the dict for the s-system
+		ss_dict = {
+			'problemname' : 'chou2006',
+			'type' :  'SSystem',
+			'date' : '01/01/12', 
+			'url' : 'http://www.cs.cmu.edu/~subhodee',
+			'errorfunc' : {
+				'equation': '-L+lambda*K',
+				'lambda': 1.0,
+				'type': 'minusLogLikelihoodPlusLambdaK'			
+			},
+			'variables' : [var for var in self._gen_variables(4)],
+			'experiments' : self._gen_experiments(),
+			'modelspace': self._gen_modelspace(),
+			'initbound': self._gen_initbound(),
+			'initsol' : self._gen_initsol()
+		}
+		self.ss_dict = ss_dict
+		# Pass ss_dict to parent class for generating s-system class
+		super(Chou2006,self).__init__(ss_dict)
 
 	def _dy(self,t,y,ss) :
 	    slope = []
@@ -142,9 +147,9 @@ class Chou2006(SSystem):
 			slope.append(dy(r.t,r.y,ss_params))
 		
 		# Define the coeffs		
-		self._t = np.array(t)
-		self._y = np.array(y)
-		self._slope = np.array(slope)
+		_t = np.array(t)
+		_y = np.array(y)
+		_slope = np.array(slope)
 
 		if(dbglevel > 2) :
 			ax = pl.gca()
@@ -154,6 +159,39 @@ class Chou2006(SSystem):
 			pl.ylabel('Concentration')
 			pl.title('Plot of Conc vs time for canon Chou 2006 ssystem')
 			pl.show()	
+
+		# return time points, vars and true slope
+		return _t,_y,_slope 
+	
+	
+	def _gen_experiment(self) :
+		""" Generate a single experiment from diffeqn integration""" 
+		exp  = {
+			'id' : 1,
+			'name' : 'exp'+str(1),
+			'datatype' : 'perfectData',
+			'samples' : self._gen_samples()
+		}
+		return exp
+	
+	def _gen_experiments(self) : 
+		""" Packages all the experiments for this class in a list"""
+		exp1 = self._gen_experiment()
+		exps = [exp1]
+		return exps
+
+	def _gen_samples(self) : 
+		nSamples,nVar = self._y.shape
+		samples = []
+		for i,var in enumerate(self._y) : 
+			sample  = {
+			'time' : self._t[i],
+			'id' :  str(i+1),
+			'sdev' :  [0.01]*nVar,
+			'var' : var
+			}
+			samples.append(sample)
+		return samples
 	
 
 	def get_ssytem(self) : 
