@@ -19,7 +19,7 @@ class Chou2006(SSystem):
 	def __init__(self) :
 		""" Initialize the Chou 2006 class """ 
 		# True params of the S-system
-		self.ss_params = {
+		self._ss_params = {
 		'alpha' : [12,8,3,2],
 		'beta' : [10,3,5,6],
 		'g' : [
@@ -36,10 +36,10 @@ class Chou2006(SSystem):
 		]
 		}		
 		# Initial points of the s-system
-		self.y0,self.t0 = [1.4,2.7,1.2,0.4],0 
+		self._y0,self._t0 = [1.4,2.7,1.2,0.4],0 
 		self._t,self._y,self._slope = self._calc_slope_var(0,5,50)
 		# define the dict for the s-system
-		ss_dict = {
+		_ss_dict = {
 			'problemname' : 'chou2006',
 			'type' :  'SSystem',
 			'date' : '01/01/12', 
@@ -55,9 +55,9 @@ class Chou2006(SSystem):
 			'initbound': self._gen_initbound(),
 			'initsol' : self._gen_initsol()
 		}
-		self.ss_dict = ss_dict
+		self._ss_dict = _ss_dict
 		# Pass ss_dict to parent class for generating s-system class
-		super(Chou2006,self).__init__(ss_dict)
+		super(Chou2006,self).__init__(_ss_dict)
 
 	def _dy(self,t,y,ss) :
 	    slope = []
@@ -128,9 +128,9 @@ class Chou2006(SSystem):
 	def _calc_slope_var(self,begin,t_end,nPoints) :
 		""" Calculate the slope and X for s-system """
 		dy = self._dy # set the gradient function
-		y0 = self.y0 # start point
-		t0 = self.t0 # start time (doesn't really matter)
-		ss_params = self.ss_params # params of equations
+		y0 = self._y0 # start point
+		t0 = self._t0 # start time (doesn't really matter)
+		ss_params = self._ss_params # params of equations
 		r = ode(dy).set_integrator('vode',method='bdf',order=15)
 		r.set_initial_value(y0,t0).set_f_params(ss_params)
 		
@@ -194,11 +194,6 @@ class Chou2006(SSystem):
 		return samples
 	
 
-	def get_ssytem(self) : 
-		return self.ss
-
-	def dummy_f1(self) : 
-		return self
 
 
 	
