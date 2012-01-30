@@ -15,8 +15,8 @@ BSD License
 """
 
 import cparser
-from .base import SSystem
-from .utility import dbglevel
+from base import SSystem
+from utility import dbglevel
 
 class ParserManager(object) :
 	def __init__(self) : 
@@ -27,7 +27,7 @@ class ParserManager(object) :
 		pass
 	def get_5genes1(self) : 
 		fname = 'allProblems/ss_5genes1'
-		ss = SSystem(cparser.parser(fname))
+		ss = SSystem(cparser.parse(fname))
 		modify_ss(ss) # make modifications to ss
 		return ss;
 
