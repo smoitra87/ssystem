@@ -43,7 +43,27 @@ class ParserManager(object) :
 		ss = SSystem(cparser.parse(fname))
 		ss_list = self._list_modifications(ss,Modifier5genes1())
 		return ss_list
+
+	def get_gen_chou2006(self):
+		""" Returns a generator for chou2006 with modifications"""
+		ss_list = self.get_chou2006()
+		for ss in ss_list : 
+			yield ss
 	
+	def get_gen_5genes1(self) : 
+		""" Returns a generator for 5genes1 with modifications"""
+		ss_list = self.get_5genes1() 
+		for ss in ss_list : 
+			yield ss
+	
+	def get_gen_all(self) : 
+		""" Returns a generator for all experiments possible """
+		for ss in self.get_gen_5genes1() : 
+			yield ss
+		
+		for ss in self.get_gen_chou2006() : 
+			yield ss
+			
 	def _list_modifications(self,ss,modObj) :
 		""" Takes in a ssystem and a modifier object, makes 
 modifications to the s-system and then returns a list of modified
@@ -55,6 +75,6 @@ ssystems """
 if __name__ == '__main__'  :
 	""" For testing Purposes"""
 	pman = ParserManager()
-	ss_5genes1 = pman.get_5genes1()
-	ss_chou2006 = pman.get_chou2006()
-
+	#ss_5genes1 = pman.get_5genes1()
+	#ss_chou2006 = pman.get_chou2006()
+	ss_list = [ss for ss in pman.get_gen_all() ] 
