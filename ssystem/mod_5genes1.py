@@ -1,7 +1,7 @@
-""" Contains modifiers for Chou2006 class"""
+""" Contains modifiers for 5genes1 class"""
 
-class ModifierChou2006(object) : 
-	""" Makes modifications to an s-system and returns a list of 
+class Modifier5genes1(object) : 
+	""" Makes modifications to an ss_5genes1 and returns a list of 
 	modified s-systems"""
 	def __init__(self) : 
 		pass
