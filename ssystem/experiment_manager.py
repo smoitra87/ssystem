@@ -30,6 +30,10 @@ class ExperimentManager(object) :
 		""" Sets params of the Experiment Manager Class"""
 		pass
 
+	def start(self) : 
+		""" Starts execution of Exoeriment Engine"""
+		pass
+
 if __name__ == '__main__'  :
 	e = ExperimentManager()
 	e.run_scenario2()

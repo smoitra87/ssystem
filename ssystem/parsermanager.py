@@ -18,20 +18,34 @@ import cparser
 from base import SSystem
 from utility import dbglevel
 
+
+
 class ParserManager(object) :
+	""" Manages loading, parsing and modifying S-systems"""
 	def __init__(self) : 
-		pass
+		""" Initialize the ParserManager class"""
+		self.lzmod = LazyModifier()
+
 	def setparams(self,**args) :
+		""" Set params of ParserManager class"""
 		pass
 	def get_chou2006(self) : 
+		""" Returns a list of Chou2006 modified models"""
 		pass
 	def get_5genes1(self) : 
+		""" Returns a list of ss_5gene ssystems with or w/o 
+		modifications"""
 		fname = 'allProblems/ss_5genes1'
 		ss = SSystem(cparser.parse(fname))
-		modify_ss(ss) # make modifications to ss
+		self.lzmod.modify(ss) # make modifications to ss
 		return ss;
 
 
-def modify_ss(ss) : 
-	""" Make modifications to ss according to type"""
-	pass
+class LazyModifier(object) :
+	""" Used for modification of s-ssystem models"""
+	def __init__(self) :
+		pass
+	def modify(self,ss) :
+		pass
+	
+
