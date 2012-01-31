@@ -17,15 +17,15 @@ BSD License
 import cparser
 from base import SSystem
 from utility import dbglevel
+import sys,os
 
-
+from modifiers import *
 
 class ParserManager(object) :
 	""" Manages loading, parsing and modifying S-systems"""
 	def __init__(self) : 
 		""" Initialize the ParserManager class"""
-		self.lzmod = LazyModifier()
-
+		pass
 	def setparams(self,**args) :
 		""" Set params of ParserManager class"""
 		pass
@@ -37,15 +37,13 @@ class ParserManager(object) :
 		modifications"""
 		fname = 'allProblems/ss_5genes1'
 		ss = SSystem(cparser.parse(fname))
-		self.lzmod.modify(ss) # make modifications to ss
-		return ss;
-
-
-class LazyModifier(object) :
-	""" Used for modification of s-ssystem models"""
-	def __init__(self) :
-		pass
-	def modify(self,ss) :
-		pass
+		m = Chou2006Modifier() 
+		ss_list = m.gen_modifications(ss) # Returns a list
+		return ss_list;
 	
+
+if __name__ == '__main__'  :
+	""" For testing Purposes"""
+	pman = ParserManager()
+	ss_5genes1 = pman.get_5genes1()
 

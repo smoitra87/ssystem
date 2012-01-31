@@ -20,7 +20,7 @@ class ExperimentManager(object) :
 		pass
 	def run_scenario2(self) : 
 		""" Runs experiments for ss_5genes1"""
-		ss = self.pman.get_5genes1()
+		self._ss = self.pman.get_5genes1()
 		
 	def run_all(self) : 
 		""" Runs all experiments in all s-systems"""
