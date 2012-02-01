@@ -32,7 +32,7 @@ class ParserManager(object) :
 		pass
 	def get_chou2006(self) : 
 		""" Returns a list of Chou2006 modified models"""
-		self.logger.debug('Creating Chou2006')
+		self.logger.info('Creating a canonical instance of chou2006')
 		ss = Chou2006()
 		ss_list = self._list_modifications(ss,ModifierChou2006())
 		self.logger.debug('Returning modified list')
@@ -42,6 +42,7 @@ class ParserManager(object) :
 		""" Returns a list of ss_5gene ssystems with or w/o 
 		modifications"""
 		fname = 'allProblems/ss_5genes1'
+		self.logger.info('Creating canonical instance of ss_5genes1')
 		self.logger.debug('Calling cparser on 5genes1')
 		ss = SSystem(cparser.parse(fname))
 		ss_list = self._list_modifications(ss,Modifier5genes1())
@@ -50,18 +51,21 @@ class ParserManager(object) :
 
 	def get_gen_chou2006(self):
 		""" Returns a generator for chou2006 with modifications"""
+		self.logger.debug("Getting generator for chou2006")
 		ss_list = self.get_chou2006()
 		for ss in ss_list : 
 			yield ss
 	
 	def get_gen_5genes1(self) : 
 		""" Returns a generator for 5genes1 with modifications"""
+		self.logger.debug("Creating generator for 5genes1")
 		ss_list = self.get_5genes1() 
 		for ss in ss_list : 
 			yield ss
 	
 	def get_gen_all(self) : 
 		""" Returns a generator for all experiments possible """
+		self.logger.debug('Generating all experiments')
 		for ss in self.get_gen_5genes1() : 
 			yield ss
 		
@@ -72,6 +76,7 @@ class ParserManager(object) :
 		""" Takes in a ssystem and a modifier object, makes 
 modifications to the s-system and then returns a list of modified
 ssystems """
+		self.logger.info("Creating a list of modified ssystems")
 		ss_list = modObj.gen_modifications(ss)
 		return ss_list
 	

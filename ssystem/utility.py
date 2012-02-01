@@ -32,6 +32,8 @@ def calc_slope(profile) :
 	by performing 
 	 * spline fitting
 	"""
+	logger = logging.getLogger('ss.util.spline')
+	logger.debug('Estimating slopes with splines')
 	var = profile.var; # 2D array of biochemical profile vars
 	n_sample,n_var = var.shape 
 	time = profile.time; # vector of time points

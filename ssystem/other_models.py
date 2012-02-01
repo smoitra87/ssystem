@@ -4,7 +4,10 @@ from base import SSystem, Experiment, Profile
 import numpy as np
 import pylab as pl
 from scipy.integrate import ode
-from utility import dbglevel
+from utility import dbglevel, loglevel
+import logging
+
+logger = logging.getLogger('ss.oth')
 
 
 class Chou2006(SSystem):
@@ -18,6 +21,8 @@ class Chou2006(SSystem):
 	"""
 	def __init__(self) :
 		""" Initialize the Chou 2006 class """ 
+		self.logger = logging.getLogger('ss.oth.2k6') 
+		self.logger.debug('Initing Chou2006 canon class')
 		# True params of the S-system
 		self._ss_params = {
 		'alpha' : [12,8,3,2],
@@ -35,6 +40,7 @@ class Chou2006(SSystem):
 		    [0,0,0,0.8]
 		]
 		}		
+		self.logger.debug('Simulating Chou2006 with Integrator')
 		# Initial points of the s-system
 		self._y0,self._t0 = [1.4,2.7,1.2,0.4],0 
 		self._t,self._y,self._slope = self._calc_slope_var(0,5,50)
@@ -57,6 +63,7 @@ class Chou2006(SSystem):
 		}
 		self._ss_dict = _ss_dict
 		# Pass ss_dict to parent class for generating s-system class
+		self.logger.debug('Calling Parent SSystem constructor')
 		super(Chou2006,self).__init__(_ss_dict)
 
 	def _dy(self,t,y,ss) :
@@ -71,6 +78,7 @@ class Chou2006(SSystem):
 	    return slope
 	
 	def _gen_variables(self,n)  :
+		self.logger.debug('Create Generator for variables')
 		for i in range(n) : 
 			var = {
 				'id' : i+1,
@@ -80,6 +88,7 @@ class Chou2006(SSystem):
 			yield var
 
 	def _gen_modelspace(self):
+		self.logger.debug('Create modelspace')
 		modelspace = {
 			'alpha': {
 				'defaultLowerBound' : 0.0,
@@ -100,6 +109,7 @@ class Chou2006(SSystem):
 		}
 		return modelspace
 	def _gen_initbound(self) :
+		self.logger.debug('Generate Init Bounds')
 		initbound = {
 			'alpha' : {},
 			'beta' : {},
@@ -108,7 +118,8 @@ class Chou2006(SSystem):
 		}
 		return initbound
 	
-	def _gen_initsol(self) :
+	def _gen_initsol(self) :		
+		self.logger.debug('Generate InitSol')
 		initsol = {
 			'alpha' : {
 				'defaultInitialValue' : 1.0
@@ -165,7 +176,8 @@ class Chou2006(SSystem):
 	
 	
 	def _gen_experiment(self) :
-		""" Generate a single experiment from diffeqn integration""" 
+		""" Generate a single experiment fom diffeqn integration""" 
+		self.logger.debug('Generate an Experiment')
 		exp  = {
 			'id' : 1,
 			'name' : 'exp'+str(1),
@@ -176,11 +188,13 @@ class Chou2006(SSystem):
 	
 	def _gen_experiments(self) : 
 		""" Packages all the experiments for this class in a list"""
+		self.logger.debug('Package all experiments into list')
 		exp1 = self._gen_experiment()
 		exps = [exp1]
 		return exps
 
-	def _gen_samples(self) : 
+	def _gen_samples(self) :
+		self.logger.debug('Generate samples')
 		nSamples,nVar = self._y.shape
 		samples = []
 		for i,var in enumerate(self._y) : 

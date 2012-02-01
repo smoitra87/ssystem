@@ -12,11 +12,16 @@ import pylab as pl
 from utility import dbglevel, calc_slope
 from scipy import interpolate
 import pdb, sys
+import logging
+from utility import loglevel, SSLogger
 
+logger = logging.getLogger('ss.base')
 
 class SSystem(object) : 
 	""" The ssystem class """
 	def __init__(self,data) : 
+		self.logger = logging.getLogger('ss.base.ss')
+		self.logger.debug('Init SSystem class')
 		self.name = data['problemname']
 		self.systype = data['type']
 		self.date = data['date']
@@ -34,6 +39,8 @@ class SSystem(object) :
 class Experiment(object) : 
 	""" The experiment class """
 	def __init__(self,exp) :
+		self.logger = logging.getLogger('ss.base.exp')
+		self.logger.debug('Initing Experiment Class')
 		self.id = exp['id']
 		self.name = exp['name']
 		self.datatype = exp['datatype']
@@ -51,14 +58,18 @@ class Equation(object) :
 class Profile(object) : 
 	""" The biochemical profile class """
 	def __init__(self,samples) : 
+		self.logger = logging.getLogger('ss.base.pro')
+		self.logger.debug('Initing Profile Class')
 		self.time = np.array([sample['time'] for sample in samples])
 		self.var = np.array([sample['var'] for sample in samples])
 		self.sdev =np.array( [sample['sdev'] for sample in samples])
+		self.logger.debug('Calculating slopes')
 		self.slopes,self.tcks = calc_slope(self)
 		self.n_sample, self.n_var = self.var.shape
 	def set_params(self,**args) :
 		pass
-	def plot_profile(self) : 
+	def plot_profile(self) :
+		self.logger.debug('Plotting Profile curves') 
 		try :
 			xnew = np.linspace(self.time[0],self.time[-1],num=50)
 			#Function handle for generating plot interpolate points
@@ -93,6 +104,8 @@ class Profile(object) :
 class Constraint(object) : 
 	"""The experiment constraint class """
 	def __init__(self,modelspace,initbound,initsol) : 
+		self.logger = logging.getLogger('self.base.con')
+		self.logger.debug('Initing Constraint Class')
 		self.modelspace = ModelSpace(modelspace)
 		self.initbound = InitBound(initbound)
 		self.initsol = InitSol(initsol)
@@ -103,6 +116,8 @@ class Constraint(object) :
 class ModelSpace(object) :
 	""" The Model space class """
 	def __init__(self,modelspace):
+		self.logger = logging.getLogger('self.base.mod')
+		self.logger.debug('Initing Modelspace class')
 		self.alpha = modelspace['alpha'];
 		self.beta = modelspace['beta'];
 		self.g = modelspace['g']
@@ -113,6 +128,8 @@ class ModelSpace(object) :
 class InitBound(object) :
 	""" The Initial Bounds on variables class """
 	def __init__(self,initbound) :
+		self.logger = logging.getLogger('ss.base.ib')
+		self.logger.debug('Initing InitBound')
 		self.alpha = initbound['alpha']
 		self.beta = initbound['beta']
 		self.g = initbound['g']
@@ -123,6 +140,8 @@ class InitBound(object) :
 class InitSol(object) :
 	""" The Initial Solution class """
 	def __init__(self,initsol) : 
+		self.logger = logging.getLogger('ss.base.is')
+		self.logger.debug('Init InitSol')
 		self.alpha = initsol['alpha']
 		self.beta = initsol['beta']
 		self.g = initsol['g']

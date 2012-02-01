@@ -56,11 +56,15 @@ class ExperimentManager(object) :
 		for ii,ss in enumerate(self.pman.get_gen_chou2006()) :
 			 logger.info("Running ss: %s mod: %d" %(ss.name,ii))
 
+		logger.info('Scenario1 Terminated')
+
 	def run_scenario2(self) : 
 		""" Runs experiments for ss_5genes1"""
 		logger = logging.getLogger('ss.eman.sc2')
 		for ii,ss in enumerate(self.pman.get_gen_5genes1()) :
 			logger.info("Running ss: %s mod: %d" % (ss.name,ii))
+		
+		logger.info('Scenario2 terminated')
 		
 	def run_scenario3(self) : 
 		""" Runs all experiments in all s-systems"""
@@ -83,10 +87,12 @@ class ExperimentManager(object) :
 		# Execute all scenarios in schedule
 		for scenario in self.schedule : 
 			run_scenario,description = scenario	
-			logger.info('Running scenario')
+			logger.info('Running scenario '+description)
 			run_scenario()
 			# Some code for storing results ???
 			# or let scenarios handle it themselves ?
+
+		logger.info('Schedule terminated')
 
 if __name__ == '__main__'  :
 	eman = ExperimentManager()
