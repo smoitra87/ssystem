@@ -18,7 +18,7 @@ import cparser
 from base import SSystem
 from utility import dbglevel
 import sys,os
-
+import logging
 from modifiers import *
 from other_models import Chou2006
 
@@ -26,22 +26,26 @@ class ParserManager(object) :
 	""" Manages loading, parsing and modifying S-systems"""
 	def __init__(self) : 
 		""" Initialize the ParserManager class"""
-		pass
+		self.logger = logging.getLogger('ss.pman')
 	def setparams(self,**args) :
 		""" Set params of ParserManager class"""
 		pass
 	def get_chou2006(self) : 
 		""" Returns a list of Chou2006 modified models"""
+		self.logger.debug('Creating Chou2006')
 		ss = Chou2006()
 		ss_list = self._list_modifications(ss,ModifierChou2006())
+		self.logger.debug('Returning modified list')
 		return ss_list
 		
 	def get_5genes1(self) : 
 		""" Returns a list of ss_5gene ssystems with or w/o 
 		modifications"""
 		fname = 'allProblems/ss_5genes1'
+		self.logger.debug('Calling cparser on 5genes1')
 		ss = SSystem(cparser.parse(fname))
 		ss_list = self._list_modifications(ss,Modifier5genes1())
+		self.logger.debug('Returning list of mods of 5genes1')
 		return ss_list
 
 	def get_gen_chou2006(self):

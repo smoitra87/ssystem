@@ -68,13 +68,26 @@ Mostly contains static members that can be imported directly without reinitializ
 	dh = logging.FileHandler(**_handler_args) 
 	dh.setLevel(logging.DEBUG)
 
-	fmt_ssh_str = "%(asctime)s %(name)s %(levelname)s %(message)s"
+	ch  = logging.StreamHandler() 
+	ch.setLevel(logging.WARNING)
+
+	fmt_ch_str = "%(name)s: %(levelname)s %(message)s"
+	fmt_ch = logging.Formatter(fmt_ch_str)
+	ch.setFormatter(fmt_ch)
+
+	fmt_ssh_str = "%(name)s: %(levelname)s %(message)s"
 	fmt_ssh = logging.Formatter(fmt_ssh_str)
 	ssh.setFormatter(fmt_ssh)
 	
+	fmt_dh_str = "%(name)s: %(levelname)s %(message)s"
+	fmt_dh = logging.Formatter(fmt_dh_str)
+	dh.setFormatter(fmt_dh)
+
 	sslogger = logging.getLogger("ss")	
 	sslogger.setLevel(loglevel)
 	sslogger.addHandler(ssh)
+	sslogger.addHandler(dh)
+	sslogger.addHandler(ch)
 	#	sslogger.addHandler(dh)
 
 	def __init__(self) : 
@@ -87,6 +100,8 @@ if __name__ == '__main__' :
 	
 	logger2 = logging.getLogger('ss.foo')
 	logger2.info('Foo test')	
+	logger2.debug('Foo Debug test')
+	logger.warning('Serious stuff..!')
 
 	print get_logdir()
 	print get_basedir()
