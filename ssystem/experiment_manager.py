@@ -10,12 +10,36 @@ BSD License
 """
 
 from parsermanager import ParserManager
+import sys,os
 
 class ExperimentManager(object) : 
 	""" Class for managing all experiments """
 	def __init__(self) : 
+	
+		# Create Logging directory if it does not exist
+		paths = os.path.split 
+		pathr = os.path.realpath
+		pathd = os.path.dirname
+		pathj = os.path.join
+		pathe = os.path.exists
+		scriptname = sys.argv[0]	
+		scriptdir = pathr(pathd(scriptname))
+		self.basedir = paths(scriptdir)[0]
+		
+		logdir = pathj(self.basedir,'logs')
+		if not os.path.exists(logdir) : 
+			os.mkdir(logdir)
+			
+		# Initialize ParserManager
 		self.pman = ParserManager()
-		self.schedule = self.scenario_schedule()
+		
+		# A schedule of scenarios to run
+		self.schedule = [
+			(self.run_scenario1,"Chou2006 experiments"),
+			(self.run_scenario2,"ss_5genes1 experiments")
+		]
+
+
 	def run_scenario1(self) : 
 		""" Runs experiments for Chou2006"""
 		for ss in self.pman.get_gen_chou2006() :
@@ -30,25 +54,24 @@ class ExperimentManager(object) :
 		""" Runs all experiments in all s-systems"""
 		pass
 	
-	def scenario_schedule(self) : 
-		"""Gives a schedule of scenarios to run """
-		sched = [
-			self.run_scenario1,
-			self.run_scenario2
-		]
-		
-		return sched
-
 	def set_params(self,**args) : 
 		""" Sets params of the Experiment Manager Class"""
 		pass
 
 	def start(self) : 
 		""" Starts execution of Exoeriment Engine"""
-
-		for run_scenario in self.schedule : 
+		# Some place for Tkinter GUI code initialization etc..
+	
+		
+		
+	
+		# Execute all scenarios in schedule
+		for scenario in self.schedule : 
+			run_scenario,description = scenario	
 			run_scenario()
+			# Some code for storing results ???
+			# or let scenarios handle it themselves ?
 
 if __name__ == '__main__'  :
-	e = ExperimentManager()
-	e.start()
+	eman = ExperimentManager()
+	eman.start()
