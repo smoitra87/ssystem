@@ -183,70 +183,70 @@ readFile(const char *filename) /* this routine does not change */
 			
 		if(!strcmp(keyword,"begin")) {
 			fscanf(infile," problem %s",problemName);
-			printf("begin problem %s\n",problemName);
+			//printf("begin problem %s\n",problemName);
 			pystr= PyString_FromString(problemName);
 			PyDict_SetItemString(parsedict,"problemname",pystr);
 			end=0;
 		}
 		else if(!strcmp(keyword,"end")) {
 			fscanf(infile," problem %s",problemName);
-			printf("end problem %s\n",problemName);
-			printf("\n\n\n"); // nice with blank lines if files are concatenated
+			//printf("end problem %s\n",problemName);
+			//printf("\n\n\n"); // nice with blank lines if files are concatenated
 			end=1;
 			//break;
 		}
 		else if(!strcmp(keyword,"format")) {
 			fscanf(infile,"format version %s",formatVersion);
-			printf("format version 1.0\n");
+			//printf("format version 1.0\n");
 		}
 		else if(!strcmp(keyword,"type")) {
 			fscanf(infile," = %s",type);
-			printf("type = %s\n",type);
+			//printf("type = %s\n",type);
 			pystr = PyString_FromString(type);
 			PyDict_SetItemString(parsedict,"type",pystr);
 		}
 		else if(!strcmp(keyword,"date")) {
 			fscanf(infile," = %s",date);
-			printf("date = %s\n",date);
+			//printf("date = %s\n",date);
 			pystr = PyString_FromString(date);
 			PyDict_SetItemString(parsedict,"date",pystr);
 		}
 		else if(!strcmp(keyword,"url")) {
 			fscanf(infile," = %s",url);
-			printf("url = %s\n",url);
+			//printf("url = %s\n",url);
 			pystr = PyString_FromString(url);
 			PyDict_SetItemString(parsedict,"url",pystr);
 		}
 		else if(!strcmp(keyword,"date")) {
 			fscanf(infile," = %s",date);
-			printf("date = %s\n",date);
+			//printf("date = %s\n",date);
 		}
 		else if(!strcmp(keyword,"reaction")) {   // borde detta vara med alls?
 			fscanf(infile," has name = %s",rName);
-			printf("reaction_%d\n",keyIndex);
-			printf("has name = %s\n",rName);
+			//printf("reaction_%d\n",keyIndex);
+			//printf("has name = %s\n",rName);
 			if(!strcmp(rName,"uniMolecularMassAction")) {
 				fscanf(infile," has localVariableName_%d = %s",&lvIndex,lvName);
 				fscanf(infile," has localParameterName_%d = %s",&lpIndex,lpName);
 				fscanf(infile," has equation = %s",equation);
-				printf("has localVariableName_%d = %s\n",lvIndex,lvName);
-				printf("has localParameterName_%d = %s\n",lpIndex,lpName);
-				printf("has equation = %s\n",equation);
+				//printf("has localVariableName_%d = %s\n",lvIndex,lvName);
+				//printf("has localParameterName_%d = %s\n",lpIndex,lpName);
+				//printf("has equation = %s\n",equation);
 			}
 			else if(!strcmp(rName,"biMolecularMassAction")) {
 				fscanf(infile," has localVariableName_%d = %s",&lvIndex,lvName);
 				fscanf(infile," has localVariableName_%d = %s",&lvIndex2,lvName2);
 				fscanf(infile," has localParameterName_%d = %s",&lpIndex,lpName);
 				fscanf(infile," has equation = %s",equation);
-				printf("has localVariableName_%d = %s\n",lvIndex,lvName);
-				printf("has localVariableName_%d = %s\n",lvIndex2,lvName2);
-				printf("has localParameterName_%d = %s\n",lpIndex,lpName);
-				printf("has equation = %s\n",equation);
+				//printf("has localVariableName_%d = %s\n",lvIndex,lvName);
+				//printf("has localVariableName_%d = %s\n",lvIndex2,lvName2);
+				//printf("has localParameterName_%d = %s\n",lpIndex,lpName);
+				//printf("has equation = %s\n",equation);
 			}
 		}
 		else if(!strcmp(keyword,"variable")) {
 			fscanf(infile," has name = %s is %s",name,property);
-			printf("variable_%d has name = %s is %s\n",keyIndex,name,property);
+			//printf("variable_%d has name = %s is %s\n",keyIndex,name,property);
 			pydict = PyDict_New();
 			pystr = PyString_FromString(name);
 			PyDict_SetItemString(pydict,"name",pystr);
@@ -260,28 +260,28 @@ readFile(const char *filename) /* this routine does not change */
 		}
 		else if(!strcmp(keyword,"range")) {
 			fscanf(infile," has lowerBound = %lf has upperBound = %lf",&lb,&ub);
-			printf("range_%d has lowerBound = %lf has upperBound = %lf\n",keyIndex,lb,ub);
+			//printf("range_%d has lowerBound = %lf has upperBound = %lf\n",keyIndex,lb,ub);
 		}
 		else if(!strcmp(keyword,"memberOfSet")) {
-			printf("memberOfSet_%d",keyIndex);
+			//printf("memberOfSet_%d",keyIndex);
 			while(1) {
 				fscanf(infile," variable_%d",&varIndex);
-				printf(" variable_%d",varIndex);
+				//printf(" variable_%d",varIndex);
 				if(endOfLine(infile)) break;
 			}
-			printf("\n");
+			//printf("\n");
 		}
 		else if(!strcmp(keyword,"possibleReaction")) {
 			fscanf(infile," of variable_%d",&varIndex);
 			fscanf(infile," has type = %s",reactionType);
-			printf("possibleReaction_%d of variable_%d\n",keyIndex,varIndex);
-			printf("has type = %s\n",reactionType);
+			//printf("possibleReaction_%d of variable_%d\n",keyIndex,varIndex);
+			//printf("has type = %s\n",reactionType);
 			if(!strcmp(reactionType,"uniMolecularMassAction")) {
 				fscanf(infile," has spaceOfVariable X1 = %s",varSetX1);
 				fscanf(infile," has rangeOfParameter k1 = %s",rangeK1);
 				
-				printf("has spaceOfVariable X1 = %s\n",varSetX1);
-				printf("has rangeOfParameter k1 = %s\n",rangeK1);
+				//printf("has spaceOfVariable X1 = %s\n",varSetX1);
+				//printf("has rangeOfParameter k1 = %s\n",rangeK1);
 				//printf("\n");
 			}
 			else if(!strcmp(reactionType,"biMolecularMassAction")) {
@@ -289,9 +289,9 @@ readFile(const char *filename) /* this routine does not change */
 				fscanf(infile," has spaceOfVariable X2 = %s",varSetX2);
 				fscanf(infile," has rangeOfParameter k1 = %s",rangeK1);
 				
-				printf("has spaceOfVariable X1 = %s\n",varSetX1);
-				printf("has spaceOfVariable X2 = %s\n",varSetX2);
-				printf("has rangeOfParameter k1 = %s\n",rangeK1);
+				//printf("has spaceOfVariable X1 = %s\n",varSetX1);
+				//printf("has spaceOfVariable X2 = %s\n",varSetX2);
+				//printf("has rangeOfParameter k1 = %s\n",rangeK1);
 				//printf("\n");
 			}
 			//else discard rest of row...
@@ -301,10 +301,10 @@ readFile(const char *filename) /* this routine does not change */
 			if(!strcmp(errorType,"minusLogLikelihoodPlusLambdaK")) {
 				fscanf(infile," has equation = %s",equation);
 				fscanf(infile," has lambda = %lf",&lambda);
-				printf("errorFunction\n");
-				printf("has type = %s\n",errorType);
-				printf("has equation = %s\n",equation);
-				printf("has lambda = %lf\n",lambda);
+				//printf("errorFunction\n");
+				//printf("has type = %s\n",errorType);
+				//printf("has equation = %s\n",equation);
+				//printf("has lambda = %lf\n",lambda);
 				//printf("\n");
 				pydict = PyDict_New();
 				pystr = PyString_FromString(errorType);
@@ -319,7 +319,7 @@ readFile(const char *filename) /* this routine does not change */
 		}
 		else if(!strcmp(keyword,"experiment")) {
 			fscanf(infile," has name = %s has %s",name,object);
-			printf("experiment_%d has name = %s has %s\n",keyIndex,name,object);
+			//printf("experiment_%d has name = %s has %s\n",keyIndex,name,object);
 			pydict = PyDict_New();
 			pystr = PyString_FromString(name);
 			PyDict_SetItemString(pydict,"name",pystr);
@@ -336,10 +336,10 @@ readFile(const char *filename) /* this routine does not change */
 		else if(!strcmp(keyword,"sample")) {
 			fscanf(infile," of experiment_%d",&index);
 			fscanf(infile," has time = %lf",&time);
-			printf("sample_%d of experiment_%d\n",keyIndex,index);
-			printf("has time = %lf\n",time);
+			//printf("sample_%d of experiment_%d\n",keyIndex,index);
+			//printf("has time = %lf\n",time);
 			fscanf(infile," has variable_ =");
-			printf("has variable_ =");
+			//printf("has variable_ =");
 			pydict = PyList_GetItem(pyexplist,index-1);
 			pylist = PyDict_GetItemString(pydict,"samples");
 			pydictsample = PyDict_New();
@@ -353,26 +353,26 @@ readFile(const char *filename) /* this routine does not change */
 			pyvallist = PyList_New(0);
 			while(1) {
 				fscanf(infile," %lf",&value);
-				printf(" %lf",value);
+				//printf(" %lf",value);
 				pyfloat = PyFloat_FromDouble(value);
 				PyList_Append(pyvallist,pyfloat);			
 				if(endOfLine(infile)) break;
 			}
 			PyDict_SetItemString(pydictsample,"var",pyvallist);
-			printf("\n");
+			//printf("\n");
 			fscanf(infile," has sdev of variable_ =");
-			printf("has sdev of variable_ =");
+			//printf("has sdev of variable_ =");
 
 			pyvallist = PyList_New(0);
 			while(1) {
 				fscanf(infile," %lf",&value);
-				printf(" %lf",value);
+				//printf(" %lf",value);
 				pyfloat = PyFloat_FromDouble(value);
 				PyList_Append(pyvallist,pyfloat);
 				if(endOfLine(infile)) break;
 			}
 			PyDict_SetItemString(pydictsample,"sdev",pyvallist);
-			printf("\n");
+			//printf("\n");
 			
 			PyList_Append(pylist,pydictsample);
 			
@@ -380,49 +380,34 @@ readFile(const char *filename) /* this routine does not change */
 		else if(!strcmp(keyword,"alpha")) {
 			//Scan the constraints
 			fscanf(infile," has %s = %lf",cons,&cons_val);
-			printf("alpha constraint %s has value %lf",cons,cons_val);
+			//printf("alpha constraint %s has value %lf",cons,cons_val);
 			assign_cons(parsedict,"alpha",cons,cons_val);
 		}
 		else if(!strcmp(keyword,"beta")) {
 			//Scan the constraints
 			fscanf(infile," has %s = %lf",cons,&cons_val);
-			printf("beta constraint %s has value %lf",cons,cons_val);
+			//printf("beta constraint %s has value %lf",cons,cons_val);
 			assign_cons(parsedict,"beta",cons,cons_val);
 		}
 		else if(!strcmp(keyword,"g")) {
 			//Scan the constraints
 			fscanf(infile," has %s = %lf",cons,&cons_val);
-			printf("g constraint %s has value %lf",cons,cons_val);
+			//printf("g constraint %s has value %lf",cons,cons_val);
 			assign_cons(parsedict,"g",cons,cons_val);
 		}
 		else if(!strcmp(keyword,"h")) {
 			//Scan the constraints
 			fscanf(infile," has %s = %lf",cons,&cons_val);
-			printf("h constraint %s has value %lf",cons,cons_val);
+			//printf("h constraint %s has value %lf",cons,cons_val);
 			assign_cons(parsedict,"h",cons,cons_val);
 		}
 		if(!strcmp(keyword,"//")) {
 			fgets(rowbuffer,999,infile);  // read rest of line
-			printf("//%s",rowbuffer);
+			//printf("//%s",rowbuffer);
 		}
 		else while(getc(infile)!='\n' && !feof(infile)); // always read to eol including the eol
 		
-		if(endOfLine(infile) && !end) printf("\n");	// pass on a blank line after a statement
-		
-		/*
-		if(!strcmp(keyword,"length")){
-			fscanf(infile," of person = %d \n",&l);
-			printf("length of person = %d\n",l);
-		}
-		else if(!strcmp(keyword,"weight")) {
-			fscanf(infile," of person = %d \n",&w);
-			printf("weight of person = %d\n",w);
-		}
-		else if(!strcmp(keyword,"person")) {
-			fscanf(infile," is %s \n",property);
-			printf("person_%d is %s\n",keyIndex,property);
-		}
-		 */
+//		if(endOfLine(infile) && !end) printf("\n");	// pass on a blank line after a statement
 
 
 	}
