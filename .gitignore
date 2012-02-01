@@ -6,3 +6,4 @@ build/
 .noseids
 ssystem/allProblems/
 *.so
+logs/

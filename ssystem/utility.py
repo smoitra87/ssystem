@@ -1,10 +1,30 @@
 """ The utility module for the ssystem package """
-
 import numpy as np
 from scipy import interpolate
+import logging, sys,os
 
 dbglevel = 1
+loglevel = logging.DEBUG
 
+def get_basedir() :
+	""" Get the base directory of the project"""
+	paths = os.path.split 
+	pathr = os.path.realpath
+	pathd = os.path.dirname
+	pathj = os.path.join
+	pathe = os.path.exists
+	scriptname = sys.argv[0]	
+	scriptdir = pathr(pathd(scriptname))
+	basedir = paths(scriptdir)[0]
+	return basedir
+
+def get_logdir() : 
+	""" Get the directory of the logs folder"""
+	logdir = os.path.join(basedir,'logs')	
+	return logdir
+
+basedir = get_basedir()
+logdir = get_logdir()
 
 def calc_slope(profile) :
 	""" 
@@ -28,3 +48,45 @@ def same_dict(x,y):
 	"""
 	n_common = len(set(x.items()) & set(y.items()) )
 	return len(x)==len(y) and n_common==len(x)
+
+class SSLogger(object) : 
+	""" Contains Loggers, Handlers and Formatters for SSystem
+Mostly contains static members that can be imported directly without reinitializing"""
+	_handler_args = {
+		'filename' : os.path.join(logdir,'ssystem.log') ,
+		'mode' : 'a'
+	}
+	# Handler for writing to ssystem.log
+	ssh = logging.FileHandler(**_handler_args) 
+	ssh.setLevel(logging.INFO)
+	
+	_handler_args = {
+		'filename' : os.path.join(logdir,'debug.log') ,
+		'mode' : 'w'
+	}
+	# Handler for writing to debug.log , more detailed logs
+	dh = logging.FileHandler(**_handler_args) 
+	dh.setLevel(logging.DEBUG)
+
+	fmt_ssh_str = "%(asctime)s %(name)s %(levelname)s %(message)s"
+	fmt_ssh = logging.Formatter(fmt_ssh_str)
+	ssh.setFormatter(fmt_ssh)
+	
+	sslogger = logging.getLogger("ss")	
+	sslogger.setLevel(loglevel)
+	sslogger.addHandler(ssh)
+	#	sslogger.addHandler(dh)
+
+	def __init__(self) : 
+		pass
+
+
+if __name__ == '__main__' : 
+	logger = SSLogger.sslogger
+	logger.info("Test")
+	
+	logger2 = logging.getLogger('ss.foo')
+	logger2.info('Foo test')	
+
+	print get_logdir()
+	print get_basedir()

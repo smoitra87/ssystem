@@ -11,22 +11,15 @@ BSD License
 
 from parsermanager import ParserManager
 import sys,os
+from utility import basedir,logdir
+
 
 class ExperimentManager(object) : 
 	""" Class for managing all experiments """
 	def __init__(self) : 
 	
 		# Create Logging directory if it does not exist
-		paths = os.path.split 
-		pathr = os.path.realpath
-		pathd = os.path.dirname
-		pathj = os.path.join
-		pathe = os.path.exists
-		scriptname = sys.argv[0]	
-		scriptdir = pathr(pathd(scriptname))
-		self.basedir = paths(scriptdir)[0]
-		
-		logdir = pathj(self.basedir,'logs')
+
 		if not os.path.exists(logdir) : 
 			os.mkdir(logdir)
 			
