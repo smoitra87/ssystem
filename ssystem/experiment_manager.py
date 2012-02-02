@@ -14,6 +14,8 @@ import sys,os
 from utility import basedir,logdir
 import logging
 import datetime
+from base import Result,ResultsScenario 
+
 
 # This statement is needed for all future logging 
 from utility import SSLogger 
@@ -53,17 +55,25 @@ class ExperimentManager(object) :
 	def run_scenario1(self) : 
 		""" Runs experiments for Chou2006"""
 		logger = logging.getLogger('ss.eman.sc1')
+		results_list = []
 		for ii,ss in enumerate(self.pman.get_gen_chou2006()) :
-			 logger.info("Running ss: %s mod: %d" %(ss.name,ii))
+			logger.info("Running ss: %s mod: %d" %(ss.name,ii))
+			res_method = None # Placeholder for method call
+			results_list.append(Result(ss,res_method))
 
+		res = ResultsScenario(results_list)	
 		logger.info('Scenario1 Terminated')
 
 	def run_scenario2(self) : 
 		""" Runs experiments for ss_5genes1"""
 		logger = logging.getLogger('ss.eman.sc2')
+		results_list = []
 		for ii,ss in enumerate(self.pman.get_gen_5genes1()) :
 			logger.info("Running ss: %s mod: %d" % (ss.name,ii))
+			res_method = None
+			results_list.append(Result(ss,res_method))
 		
+		res = ResultsScenario(results_list)
 		logger.info('Scenario2 terminated')
 		
 	def run_scenario3(self) : 
@@ -91,6 +101,7 @@ class ExperimentManager(object) :
 			run_scenario()
 			# Some code for storing results ???
 			# or let scenarios handle it themselves ?
+			
 
 		logger.info('Schedule terminated')
 

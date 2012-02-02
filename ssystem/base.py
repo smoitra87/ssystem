@@ -148,3 +148,51 @@ class InitSol(object) :
 		self.h = initsol['h']
 	def set_params(self,**args) : 
 		pass
+
+
+class Result(object) :
+	""" Class for storing results from a single experiment"""
+	def __init__(self,ss,res_method) : 
+		"""
+			ss - ssystem class for which the experiment was run
+			res_method - result returned from the method 
+		"""
+		self.logger = logging.getLogger('ss.base.res')
+		self.logger.debug('Initing Result Class')
+
+	def gen_str(self) : 
+		""" Generates a string representation of the results"""
+		pass
+
+	def gen_xml(self) :
+		""" Generates an xml representation of the results"""
+		pass
+
+class ResultsScenario(object) : 
+	""" Class for storing results from a scenario """
+	def __init__(self,list_res) : 
+		"""
+		list_res - Contains a list of Result objects generated from various runs	 
+		"""
+		self.logger = logging.getLogger('ss.base.rscn')
+		self.logger.debug('Initing ResultsScenario Class')
+
+	def dump_results(self) : 
+		""" Dumps all results to timestamped folder"""
+		pass
+	
+	def _dump_pickle(self) : 
+		""" Pickes all results together and dumps the results"""
+		pass
+	
+	def _dump_xml(self) : 
+		""" Dumps an xml version of results"""
+		pass
+
+	def _dump_str(self) : 
+		""" Dumps a File containing results in readable format"""
+		pass
+
+	def _dump_html(self) :
+		""" Dumps a html version of the results"""
+		pass
