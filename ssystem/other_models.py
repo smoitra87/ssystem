@@ -207,10 +207,6 @@ class Chou2006(SSystem):
 			samples.append(sample)
 		return samples
 	
-
-
-
-	
 if __name__ == '__main__' : 
 	c = Chou2006()
 

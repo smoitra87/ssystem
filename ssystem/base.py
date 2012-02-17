@@ -33,6 +33,7 @@ class SSystem(object) :
 		initbound = data['initbound']
 		initsol = data['initsol']
 		self.constraint = Constraint(modelspace,initbound,initsol)
+		self.exptype = 'Generic'
 	def set_params(self,**args) :
 		pass
 

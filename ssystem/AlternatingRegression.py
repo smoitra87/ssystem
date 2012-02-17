@@ -11,8 +11,10 @@ This model is mostly meant to work with the Chou2006 S-system model
 
 """
 
+from parsermanager import ParserManager
 from utility import basedir,logdir
-
+import logging
+from modifiers import ModifierChou2006
 
 class ARSolver(object) :
 	"""
@@ -22,6 +24,7 @@ to enforce constraints and good behavior of algorithm
 	def __init__(self,ss=None) :  
 		""" Init the AR solver""" 
 		self.ss = ss
+		self.logger = logging.getLogger('ss.ar')
 		
 	def	_preprocessor(self) :  
 		""" Run preprocessing on ss to make compatible with exp type
@@ -44,12 +47,17 @@ to enforce constraints and good behavior of algorithm
 		""" Core routine of the ARSolver class"""
 		pass
 
-
 class TrajectoryTracker(object) : 
 	""" Tracks trajectory of the solution path """
 	def __init__(self) : 
 		pass
 
 
-if __name__ == '__main__' : 
-	ar = ARSolver() 
+if __name__ == '__main__' :  
+	pman = ParserManager()
+	for ii,ss in enumerate(pman.get_gen_chou2006()) :
+		# Run Alternating Regression and the result
+		print('Running ss:%s mod:%d'%(ss.name,ii))
+		ar = ARSolver(ss) 
+		result_mod_ss = ar.solve()
+
