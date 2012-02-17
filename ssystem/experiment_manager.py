@@ -10,7 +10,7 @@ BSD License
 """
 
 from parsermanager import ParserManager
-import sys,os
+import sys,os, copy
 from utility import basedir,logdir
 import logging
 import datetime
@@ -58,8 +58,13 @@ class ExperimentManager(object) :
 		results_list = []
 		for ii,ss in enumerate(self.pman.get_gen_chou2006()) :
 			logger.info("Running ss: %s mod: %d" %(ss.name,ii))
-			res_method = None # Placeholder for method call
-			results_list.append(Result(ss,res_method))
+
+			# Extract each individual ss and execute it 
+			for expid,ss_exp in enumerate(self._exp_splayer(ss)) : 
+				logger.info("Running ss: %s mod: %d exp: %d"% 
+					(ss.name,ii,expid))	
+				res_ar = None # Placeholder for method call
+				results_list.append(Result(ss,res_ar))
 
 		res = ResultsScenario(results_list)	
 		logger.info('Scenario1 Terminated')
@@ -70,8 +75,13 @@ class ExperimentManager(object) :
 		results_list = []
 		for ii,ss in enumerate(self.pman.get_gen_5genes1()) :
 			logger.info("Running ss: %s mod: %d" % (ss.name,ii))
-			res_method = None
-			results_list.append(Result(ss,res_method))
+
+			# Extract each individual ss and execute it 
+			for expid,ss_exp in enumerate(self._exp_splayer(ss)) : 
+				logger.info("Running ss: %s mod: %d exp: %d"% 
+					(ss.name,ii,expid))	
+				res_ar = None # Placeholder for method call
+				results_list.append(Result(ss,res_ar))
 		
 		res = ResultsScenario(results_list)
 		logger.info('Scenario2 terminated')
@@ -80,6 +90,14 @@ class ExperimentManager(object) :
 		""" Runs all experiments in all s-systems"""
 		logger = logging.getLogger('ss.eman.sc3')
 		logger.info('Running all ssystems and modifications')
+
+	def _exp_splayer(self,ss) : 
+		""" Splays the experiments and packs them into a new ss"""
+		exp_list = ss.experiments
+		for exp in exp_list : 
+			ss_copy = copy.copy(ss)  # create a copy of original ss
+			ss_copy.experiments = [exp]
+			yield ss_copy
 	
 	def set_params(self,**args) : 
 		""" Sets params of the Experiment Manager Class"""
