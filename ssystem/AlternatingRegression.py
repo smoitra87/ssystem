@@ -18,6 +18,7 @@ from modifiers import ModifierChou2006
 import numpy as np
 import scipy as sp
 import pylab as pl
+import pdb
 
 
 class ARSolver(object) :
@@ -103,7 +104,13 @@ to enforce constraints and good behavior of algorithm
 			keys = params.keys()
 			var_range = (params['defaultLowerBound'],\
 				params['defaultUpperBound'])
-			self.modelspace[varname] = [[var_range]*nvars]*nvars
+
+			# This step is purely there cuz [[var_range]*nvars]*nvars
+			# does not work
+			varlist = []
+			for ii in range(nvars) : 
+				varlist.append([var_range]*nvars)
+			self.modelspace[varname] = varlist
 			for key in keys : 
 				if re.match(varname+'_\d+_\d+',key)	:
 					idr,idc = map(int,(key.split('_')[1:3]))
@@ -115,6 +122,52 @@ to enforce constraints and good behavior of algorithm
 			sys.exit(1)
 
 
+	def _parse_softspace(self) :
+		""" Compute the soft constraint space 
+			Current strategy is to set it to 50% of hard constraint 
+			limits
+		"""
+		self.softspace = {}
+		
+		for varname in ['alpha','beta','g','h'] : 
+			self._parse_softspace_var(varname)
+	
+	def _parse_softspace_var(self,varname) : 
+		""" Sets the values of alpha, beta, g and h from modelspace
+			values
+		"""
+		modelspace = self.modelspace
+
+		if varname in ('alpha','beta') : 
+			vspace = modelspace[varname]
+			vlist = []
+			for v in vspace : 				
+				if not type(v) is tuple : 
+					vlist.append(v)
+				else : 
+					vlist.append((v[0]*0.5,v[1]*0.5))
+			self.softspace[varname] = vlist
+				
+		elif varname in ('g','h') :
+			vspace = modelspace[varname]
+			vlist = []
+			for vrow in vspace : 
+				vlist2 = []
+				for v in vrow : 				
+					if not type(v) is tuple : 
+						vlist2.append(v)
+					else : 
+						vlist2.append((v[0]*0.5,v[1]*0.5))
+				vlist.append(vlist2)
+			self.softspace[varname] = vlist
+						
+		else :
+			logging.error("Unrecognized varname %s quitting.." \
+			%(varname))
+			sys.exit(1)
+
+		
+		
 
 	def	_preprocessor(self) :  
 		""" Run preprocessing on ss to make compatible with exp type
@@ -124,6 +177,7 @@ to enforce constraints and good behavior of algorithm
 		# Parse entries from ss class
 		self._parse_initsol()
 		self._parse_modelspace()
+		self._parse_softspace()
 		self._parse_initbound()
 		self._parse_modelspace()
 		
@@ -188,5 +242,4 @@ if __name__ == '__main__' :
 				(ss.name,ii,expid))	
 			ar = ARSolver(ss_exp) 
 			result_exp = ar.solve()
-
 

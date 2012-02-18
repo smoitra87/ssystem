@@ -67,6 +67,8 @@ class TestARSolverChou2006(object) :
 		self.ar._parse_initsol()
 		assert_almost_equal(self.ar.initsol['g'][0][0],0.45,places=2)
 		assert_almost_equal(self.ar.initsol['g'][2][1],0.33,places=2)
+		eq_(self.ar.initsol['g'][1][0],0.5)
+		eq_(self.ar.initsol['g'][3][1],0.5)
 
 	def test_parse_modelspace(self) :
 		""" Test the _parse_modelspace command """
@@ -119,5 +121,7 @@ class TestARSolverChou2006(object) :
 		modelspace.g['g_3_2'] = (0.33,20.0)
 		self.ar._parse_modelspace()
 		eq_(self.ar.modelspace['g'][0][0],'nonZero')
+		eq_(self.ar.modelspace['g'][1][0],(0.5,30.0))
 		eq_(self.ar.modelspace['g'][2][1],(0.33,20.0))
+		eq_(self.ar.modelspace['g'][3][1],(0.5,30.0))
 	
