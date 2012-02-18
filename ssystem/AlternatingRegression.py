@@ -30,6 +30,10 @@ to enforce constraints and good behavior of algorithm
 		""" Init the AR solver""" 
 		self.ss = ss
 		self.logger = logging.getLogger('ss.ar')
+		
+		# Run preprocessing steps
+		self._preprocessor()
+		
 
 	def _parse_initbound(self) : 
 		""" Parse the soft constraints """
@@ -171,6 +175,35 @@ to enforce constraints and good behavior of algorithm
 
 	def	_preprocessor(self) :  
 		""" Run preprocessing on ss to make compatible with exp type
+
+The following are the constraint concepts
+
+Modelspace : Basically whatever is given in the S-system.
+Lenient modelspace : A property of the algorithm which is used for catching crazy growing values
+softspace  : Initially set to half modelspace and then adjusted to go up to modelspace
+
+fullinfo:
+    Regressors are not included
+    Modelspace is enforced
+    modelspace may or may not be suitably modified to encode up/down regulation (+ve,-ve)
+    Lenient modelspace is enforced as well
+
+partialinfo:
+    Union of prod degrad regressors
+    Modelspace is enforced
+    modelspace may or may not be suitably modified to encode up/down regulation (+ve,-ve)
+    Lenient modelspace enforced as well
+
+noinfo:
+    All regressors
+    Modelspace is enforced
+    modelspace may or may not be suitably modified to encode up/down regulation (+ve,-ve)
+    Lenient modelspace enforced as well
+    
+structure:
+    All regressors
+    Lenient modelspace enforced 
+
 		"""
 		logging.debug('Beginning preprocessor')
 		
@@ -179,8 +212,10 @@ to enforce constraints and good behavior of algorithm
 		self._parse_modelspace()
 		self._parse_softspace()
 		self._parse_initbound()
-		self._parse_modelspace()
 		
+		# Deal with exptype ??
+
+		# Deal with noisy data ??
 
 	def _enforce_cons(self) : 
 		""" Enforce constraints"""
@@ -200,10 +235,7 @@ to enforce constraints and good behavior of algorithm
 	def solve(self,maxiter=1000,tol=-7) : 
 		""" Runs the core routine """
 		logging.debug('Beginning AR solver')	
-		
-		# Execute Preprocessing Steps
-		self._preprocessor()
-		
+				
 		# Execute the AR core
 		self._core()
 
