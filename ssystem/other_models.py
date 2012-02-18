@@ -128,7 +128,7 @@ class Chou2006(SSystem):
 				'defaultInitialValue' : 1.0
 			},
 			'g': {
-				'defaultInitiValue' : 0.0
+				'defaultInitialValue' : 0.0
 			},
 			'h' : {
 				'defaultInitialValue' : 0.0

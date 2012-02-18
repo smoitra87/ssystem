@@ -23,6 +23,11 @@ def get_logdir() :
 	logdir = os.path.join(basedir,'logs')	
 	return logdir
 
+def get_homedir() : 
+	""" Get the home directory of the user"""
+	homedir = os.getenv('HOME')
+	return homedir
+
 basedir = get_basedir()
 logdir = get_logdir()
 
@@ -54,6 +59,17 @@ def same_dict(x,y):
 class SSLogger(object) : 
 	""" Contains Loggers, Handlers and Formatters for SSystem
 Mostly contains static members that can be imported directly without reinitializing"""
+
+	if not os.path.exists(logdir) : 
+		try:
+			os.mkdir(logdir)
+		except OSError : # OS did not allow permission to that dir
+			homedir = get_homedir() 
+			logdir = os.path.join(homedir,'sslogs')
+			if not os.path.exists(logdir):
+				os.mkdir(logdir)
+		
+
 	_handler_args = {
 		'filename' : os.path.join(logdir,'ssystem.log') ,
 		'mode' : 'a'

@@ -13,15 +13,19 @@ This model is mostly meant to work with the Chou2006 S-system model
 
 from parsermanager import ParserManager
 from utility import basedir,logdir
-import logging, copy
+import logging, copy, re, sys
 from modifiers import ModifierChou2006
+import numpy as np
+import scipy as sp
+import pylab as pl
+
 
 class ARSolver(object) :
 	"""
 Houses the Alternating Regression core routine and supporting scripts
 to enforce constraints and good behavior of algorithm
 	"""
-	def __init__(self,ss=None) :  
+	def __init__(self,ss) :  
 		""" Init the AR solver""" 
 		self.ss = ss
 		self.logger = logging.getLogger('ss.ar')
@@ -30,22 +34,96 @@ to enforce constraints and good behavior of algorithm
 		""" Parse the soft constraints """
 		logging.debug("Parsing initbound soft constraints")
 		
-
 	def _parse_initsol(self) : 
 		""" Parse the initial solution """
 		logging.debug("Parsing initsol initial solution")
 
+		# Init initsol as an empty dict
+		self.initsol = {}
+
+		for varname in ['alpha','beta','g','h'] : 
+			self._parse_var_initsol(varname)
+	
+	def _parse_var_initsol(self,varname) : 
+		""" Apply default or specific values to attr with varname"""
+		initsol = self.ss.constraint.initsol
+		params = getattr(initsol,varname)
+		nvars = len(self.ss.variables) # num of variables
+
+		if varname in ('alpha','beta') : 
+			self.initsol[varname] = np.ones(nvars)
+			keys = params.keys()
+			self.initsol[varname][:] = params['defaultInitialValue']
+			for key in keys : 
+				if re.match(varname+'_\d+',key)	:
+					idx = int(key.split('_')[1])
+					self.initsol[varname][idx-1] = params[key]
+		elif varname in ('g','h') :
+			self.initsol[varname] = np.ones([nvars,nvars])
+			keys = params.keys()
+			self.initsol[varname][:] = params['defaultInitialValue']
+			for key in keys : 
+				if re.match(varname+'_\d+_\d+',key)	:
+					idr,idc = map(int,(key.split('_')[1:3]))
+					self.initsol[varname][idr-1][idc-1] = params[key]
+		
+		else :
+			logging.error("Unrecognized varname %s quitting.." \
+			%(varname))
+			sys.exit(1)
+
+
 	def _parse_modelspace(self) :
 		""" Parse the modelspace which are the hard constraints """
 		logging.debug("Parsing modelspace hard constraints")	
+	
+		self.modelspace = {}
+		
+		for varname in ['alpha','beta','g','h'] : 
+			self._parse_var_modelspace(varname)
+	
+	def _parse_var_modelspace(self,varname) : 
+		""" Apply default or specific values to attr with varname"""
+
+		modelspace = self.ss.constraint.modelspace
+		params = getattr(modelspace,varname)
+		nvars = len(self.ss.variables) # num of variables
+
+		if varname in ('alpha','beta') : 
+			keys = params.keys()
+			var_range =  (params['defaultLowerBound'],\
+				params['defaultUpperBound'])
+			self.modelspace[varname] = [var_range]*nvars
+			for key in keys : 
+				if re.match(varname+'_\d+',key)	:
+					idx = int(key.split('_')[1])				
+					self.modelspace[varname][idx-1] = params[key]
+
+		elif varname in ('g','h') :
+			keys = params.keys()
+			var_range = (params['defaultLowerBound'],\
+				params['defaultUpperBound'])
+			self.modelspace[varname] = [[var_range]*nvars]*nvars
+			for key in keys : 
+				if re.match(varname+'_\d+_\d+',key)	:
+					idr,idc = map(int,(key.split('_')[1:3]))
+					self.modelspace[varname][idr-1][idc-1] = params[key]
+		
+		else :
+			logging.error("Unrecognized varname %s quitting.." \
+			%(varname))
+			sys.exit(1)
+
+
 
 	def	_preprocessor(self) :  
 		""" Run preprocessing on ss to make compatible with exp type
-		 """
+		"""
 		logging.debug('Beginning preprocessor')
 		
 		# Parse entries from ss class
 		self._parse_initsol()
+		self._parse_modelspace()
 		self._parse_initbound()
 		self._parse_modelspace()
 		
@@ -65,7 +143,7 @@ to enforce constraints and good behavior of algorithm
 		pass
 
 
-	def solve(self) : 
+	def solve(self,maxiter=1000,tol=-7) : 
 		""" Runs the core routine """
 		logging.debug('Beginning AR solver')	
 		
@@ -76,7 +154,7 @@ to enforce constraints and good behavior of algorithm
 		self._core()
 
 		# Run post processing steps
-		self._postprocess()
+		self._postprocessor()
 	
 
 	def _core(self) : 
