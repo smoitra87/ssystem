@@ -12,9 +12,11 @@ This model is mostly meant to work with the Chou2006 S-system model
 """
 
 from parsermanager import ParserManager
-from utility import basedir,logdir
-import logging, copy, re, sys
+from utility import basedir,logdir,within_tuple
+import logging, copy, re, sys, random
 from modifiers import ModifierChou2006
+
+import utility as util
 
 import numpy as np
 from numpy import linalg as LA
@@ -323,14 +325,19 @@ structure:
 				
 		# Execute the AR core
 		for exp in ss.experiments : 
-			self._core(exp)
+			self._core(exp,maxiter,tol)
 
 		# Run post processing steps
 		self._postprocessor()
 	
 
-	def _core(self,exp) : 
-		""" Core routine of the ARSolver class"""
+	def _core(self,exp,maxiter,tol) : 
+		"""
+Core routine of the ARSolver class
+
+Note bd_i is [log(beta_i) hi1 .. hip]
+
+		"""
 		logging.debug('Beginning AR core')
 
 		# Get profile from experiment
@@ -340,6 +347,183 @@ structure:
 
 		# Set initial solution params
 		a_list,b_list,g_list,h_list = self._core_init_params()
+
+		# Set Loop params
+		self._continueLoop = True
+		loopiter = 0
+		
+		for eqnid,eqn in enumerate(self.equations) :
+			Cp = cp_list[eqnid]
+			Cd = cd_list[eqnid]	
+			Lp = lp_list[eqnid]			
+			Ld = ld_list[eqnid]
+			b = b_list[eqnid]
+			h = h_list[eqnid]
+			g = g_list[eqnid]
+			a = a_list[eqnid]
+			bd = np.concatenate(([np.log(b)],h))
+			bp = np.concatenate(([np.log(a)],g))
+			# Note this directly references slopes
+			slopes = exp.profile.slopes[:,eqn-1]
+			
+
+			while(self._continueLoop == True) :
+				
+				# phase 1 components
+
+				retcode,bp = self._core_phase1(slopes,Cp,bd,Ld,eqn)
+
+				if retcode == 2 : 
+					self.continueLoop = False
+					self.logging.error(
+					'Terminating eqn%d because of complex pain'%(eqn))
+					break
+				
+				retcode = self._core_monitor_phase1(bp,eqnid,eqn)	
+#	
+#				# phase 2 components
+#				a = a_list(eqnid-1)
+#				g = g_list(eqnid-1)
+#				bp = np.concatenate((np.log(a),g))
+#				
+#				retcode = self._core_phase2(Cd,slopes,bp)
+#				
+#				if retcode == BAD :
+#					self.continueLoop = False
+#					break
+#	
+#				self._core_monitor_phase1(bp,eqnid)			
+#				
+#				self.check_convergence()
+				
+				# For debug only
+				self._continueLoop = False
+	
+	def _core_monitor_phase1(self,bp,eqnid,eqn) : 
+		""" 
+Monitor the bp params returned after phase1
+Check that the bp params lie within the modelspace
+if they don't fix them 
+		"""
+		reg_p = self.regressors[eqnid]['prod']
+		a_mspace = self.modelspace['alpha'][eqn-1]
+		g_mspace = self.modelspace['g'][eqn-1]
+		g_mspace = [g_mspace[reg-1] for reg in reg_p]
+
+		alpha = np.exp(bp[0])
+		retcode = 0
+
+		# check alpha_mspace
+		if a_mspace == "nonZero"  :
+			# Check if alpha is really close to zero
+			if abs(np.exp(alpha)) < util.eps  :
+				bp[0] = np.log(util.eps)
+				retcode = 1
+		else : 
+			if not within_tuple(a_mspace,np.exp(alpha)) : 
+				self.logger.debug(
+				'alpha=%r out of mspace=%r'%(alpha,a_mspace))
+				retcode = 1
+				if alpha > a_mspace[1] : 
+					bp[0] = np.log(a_mspace[1]-util.eps)
+				else : 
+					bp[0] = np.log(a_mspace[0]+util.eps)
+		
+		# check g_mspace. Loop through all the g's there
+		#	pdb.set_trace()
+		for ii,g in enumerate(bp[1:]) : 
+			g_space = g_mspace[ii]
+			if g_space == "nonZero"  :
+				# Check if param is really close to zero
+				if abs(g) < util.eps  :
+					bp[1+ii] = random.choice([-util.eps,util.eps])
+					retcode = 1
+			else : 
+				if not within_tuple(g_space,g) : 
+					self.logger.debug(
+					'g%d=%r out of mspace=%r. Fixing..'%
+					(ii+1,g,g_space))
+					retcode = 1
+					if alpha > a_mspace[1] : 
+						bp[ii+1] = g_space[1]-util.eps
+					else : 
+						bp[ii+1] = g_space[0]+util.eps
+				
+		
+		return retcode				
+
+
+	
+	def _core_phase1(self,slopes,Cp,bd,Ld,eqn)  : 
+		""" 
+Run phase1  : 
+	Calculates degrad terms and estimates bp
+		Return codes:
+		0 : Success
+		1 : Complex trouble, but solved
+		2 : Complex trouble, but could not solve
+		"""
+
+		degrad = self._core_calc_degrad(bd,Ld)
+		yd_ = slopes + degrad
+		retcode = 0 # Assuming success
+
+		# If yd_ <= 0 . Try to solve it by fixing beta 
+		while (yd_ <= 0.0).any() and \
+		np.exp(bd[0])< ar.modelspace['beta'][eqn-1][1] :
+
+			self.logger.debug(\
+			"Found complex pain. Dealing with it..")
+			retcode =  1 # Found complex pain
+			
+			bd[0] += np.log(2) # Mult beta by 2 to fix complex pain
+			degrad = self._core_calc_degrad(bd,Ld)
+			yd_ = slopes+degrad
+
+		if (yd_ <= 0.0).any() : 
+			self.logger.error('Could not deal with complex pain')
+			retcode = 2
+			return retcode,None	
+					
+		
+		yd = np.log(yd_) 
+		bp = np.dot(Cp,yd)
+
+		return retcode,bp	
+	
+
+
+	def _core_calc_degrad(self,bd,Ld) : 
+		""" 
+Calculate the degradation values
+Given bd = [log(b) hi1 hi2 .. hip]
+Ld = Design matrix
+It returns [n_sample x 1] array of degrad values
+	
+		"""
+		degrad = np.dot(Ld,bd) # Do matrix multiplication 
+		degrad = np.exp(degrad) # Exponentiate to convert log to real
+		return degrad
+
+	def _core_calc_prod(self,bp,Lp) : 
+		"""
+Calculate the production values
+Given bp = [log(a) gi1 gi2 .. gip]
+Lp = Design matrix
+It returns [n_sample x 1] array of prod values
+		"""
+		prod = np.dot(Lp,bp)
+		prod = np.exp(prod)
+		return prod
+
+
+	def _core_phase2(self,Cd,slopes) :
+		""" Compute phase 2 """
+		pass
+
+	def _core_monitor_phase2(self,bd) : 
+		""" Monitor the bd params returned after phase2 """
+		pass
 
 	def _core_init_params(self) : 
 		""" 
@@ -415,6 +599,7 @@ Similarly for Ld
 			cp_list.append(Cp)
 			cd_list.append(Cd)
 
+			
 		return (lp_list,ld_list,cp_list,cd_list)
 
 

@@ -5,6 +5,7 @@ import logging, sys,os
 
 dbglevel = 1
 loglevel = logging.DEBUG
+eps = 10e-7
 
 def get_basedir() :
 	""" Get the base directory of the project"""
@@ -48,6 +49,12 @@ def calc_slope(profile) :
 	#Calculate the derivatives
 	derivatives = np.array(map(f2,tcks)).T
 	return derivatives,tcks	
+
+def within_tuple(tup,x) : 
+	""" Checks whether an element x is within a range specified by 
+	tuple
+	"""
+	return x >= tup[0] and x <= tup[1]
 
 def same_dict(x,y):	
 	"""
