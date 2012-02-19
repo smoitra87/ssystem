@@ -126,4 +126,67 @@ class TestARSolverChou2006(object) :
 		eq_(self.ar.modelspace['g'][3][1],(0.5,30.0))
 
 	def test_regressors(self) : 
-		pass
+		""" Test _set_regressors code """
+
+		# Test for fullinfo and 1st and 3rd eqn
+		self.ss = Chou2006()
+		self.ss.exptype = "fullinfo"
+		self.ss.equations = [1,3]
+		self.ar = ARSolver(self.ss)
+
+		eq_(len(self.ar.regressors),2)		
+
+		eq_(self.ar.regressors[0]['degrad'],[1])
+		eq_(self.ar.regressors[0]['prod'],[3])
+		eq_(self.ar.regressors[1]['degrad'],[3,4])
+		eq_(self.ar.regressors[1]['prod'],[2])
+	
+		# Test for fullinfo and all eqns	
+		self.ss = Chou2006()
+		self.ss.exptype = "fullinfo"
+		self.ar = ARSolver(self.ss)	
+
+		eq_(self.ar.regressors[0]['degrad'],[1])
+		eq_(self.ar.regressors[0]['prod'],[3])
+		eq_(self.ar.regressors[1]['degrad'],[2])
+		eq_(self.ar.regressors[1]['prod'],[1])
+		eq_(self.ar.regressors[2]['degrad'],[3,4])
+		eq_(self.ar.regressors[2]['prod'],[2])
+		eq_(self.ar.regressors[3]['degrad'],[4])
+		eq_(self.ar.regressors[3]['prod'],[1])
+
+		# Test for partial info and all equations	
+		self.ss = Chou2006()
+		self.ss.exptype = "partialinfo"
+		self.ar = ARSolver(self.ss)	
+
+		eq_(self.ar.regressors[0]['degrad'],[1,3])
+		eq_(self.ar.regressors[0]['prod'],[1,3])
+		eq_(self.ar.regressors[1]['degrad'],[1,2])
+		eq_(self.ar.regressors[1]['prod'],[1,2])
+		eq_(self.ar.regressors[2]['degrad'],[2,3,4])
+		eq_(self.ar.regressors[2]['prod'],[2,3,4])
+		eq_(self.ar.regressors[3]['degrad'],[1,4])
+		eq_(self.ar.regressors[3]['prod'],[1,4])
+
+		# Test for no info and all equations
+		self.ss = Chou2006()
+		self.ss.exptype = "noinfo"
+		self.ar = ARSolver(self.ss)	
+
+		for ii in range(4) : 
+			eq_(self.ar.regressors[ii]['degrad'],[1,2,3,4])
+			eq_(self.ar.regressors[ii]['prod'],[1,2,3,4])
+
+		# Test for no info and 1st and 3rd equations
+		self.ss = Chou2006()
+		self.ss.exptype = "noinfo"
+		self.ss.equations = [1,3]
+		self.ar = ARSolver(self.ss)	
+
+		eq_(len(self.ar.regressors),2)
+
+		for ii in range(2) : 
+			eq_(self.ar.regressors[ii]['degrad'],[1,2,3,4])
+			eq_(self.ar.regressors[ii]['prod'],[1,2,3,4])
+

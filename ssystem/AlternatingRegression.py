@@ -19,6 +19,8 @@ import numpy as np
 import scipy as sp
 import pylab as pl
 import pdb
+from nose.tools import eq_
+from other_models import Chou2006
 
 
 class ARSolver(object) :
@@ -348,3 +350,4 @@ if __name__ == '__main__' :
 			ar = ARSolver(ss_exp) 
 			result_exp = ar.solve()
 
+	
