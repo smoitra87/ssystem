@@ -16,7 +16,7 @@ class ModifierChou2006(object) :
 		self.mod4]
 		mod_list2 = [self.mod4]
 
-		self.mods = mod_list1
+		self.mods = mod_list2
 				
 
 	def gen_modifications(self,ss)  : 

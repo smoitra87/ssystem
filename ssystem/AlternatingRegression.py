@@ -15,9 +15,12 @@ from parsermanager import ParserManager
 from utility import basedir,logdir
 import logging, copy, re, sys
 from modifiers import ModifierChou2006
+
 import numpy as np
+from numpy import linalg as LA
 import scipy as sp
 import pylab as pl
+
 import pdb
 from nose.tools import eq_
 from other_models import Chou2006
@@ -319,17 +322,101 @@ structure:
 		logging.debug('Beginning AR solver')	
 				
 		# Execute the AR core
-		self._core()
+		for exp in ss.experiments : 
+			self._core(exp)
 
 		# Run post processing steps
 		self._postprocessor()
 	
 
-	def _core(self) : 
+	def _core(self,exp) : 
 		""" Core routine of the ARSolver class"""
 		logging.debug('Beginning AR core')
 
+		# Get profile from experiment
+		prof = exp.profile	
+		lp_list,ld_list,cp_list,cd_list = self._core_calc_design(prof)
+
+
+		# Set initial solution params
+		a_list,b_list,g_list,h_list = self._core_init_params()
+
+	def _core_init_params(self) : 
+		""" 
+Initialize the params for b and h from initsol, for all other params 
+set some dummy values. Separate every param equation wise and stick it 
+in a list
+		"""
+		a_list,b_list = [],[]
+		g_list,h_list = [],[]
 		
+		
+		for eqnid,eqn in enumerate(self.equations) : 
+			reg_p = self.regressors[eqnid]['prod']
+			reg_d = self.regressors[eqnid]['degrad']
+			h_eqn = self.initsol['h'][eqn-1]
+
+			a_list.append(1.0) # dummy
+			b_list.append(self.initsol['beta'][eqn-1])
+		
+			g_list.append(np.zeros(len(reg_p)))
+		
+			h_eqn = np.array([h_eqn[reg-1] for reg in reg_d])
+			h_list.append(h_eqn)
+	
+		return (a_list,b_list,g_list,h_list)
+	
+	def _core_calc_design(self,prof) : 
+		""" 
+Calculate design matrices and return list	
+Calculate Lp, Ld, Cp and Cd 
+
+lp_list contains a list of Lp
+Lp= |1 log(X1(t1)) . . log(Xp(t1)) |
+	|1 log(X1(t2))				   |
+	|.		.					   |
+	|.		.					   |
+	|1 log(X1(tn)) . . log(Xp(tn)) |
+
+Here 1..p may depend on what regressors are actually being selected
+according to exptype
+
+Cp = inv(Lp'*Lp)*Lp'
+
+Similarly for Ld
+
+		 """
+		lp_list,ld_list = [],[]
+		cp_list,cd_list = [],[]
+		
+		
+		for eqnid,eqn in enumerate(self.equations) : 
+			reg_p = self.regressors[eqnid]['prod']
+			reg_d = self.regressors[eqnid]['degrad']
+	
+			Lp = np.ones(prof.n_sample)
+			Ld = np.ones(prof.n_sample)
+		
+			# Get regressor values
+			X_p = [np.log(prof.var[:,reg-1]) for reg in reg_p ]
+			X_d = [np.log(prof.var[:,reg-1]) for reg in reg_d ]
+			
+			Lp = np.vstack((Lp,np.array(X_p))).T
+			Ld = np.vstack((Ld,np.array(X_d))).T
+
+			# Calculate Cp
+			Cp = np.dot(LA.inv(np.dot(Lp.T,Lp)),Lp.T)
+			Cd = np.dot(LA.inv(np.dot(Ld.T,Ld)),Ld.T)
+
+
+			# Append Lp,Ld,Cp and Cd to relevant lists
+			lp_list.append(Lp)
+			ld_list.append(Ld)
+			cp_list.append(Cp)
+			cd_list.append(Cd)
+
+		return (lp_list,ld_list,cp_list,cd_list)
+
 
 class TrajectoryTracker(object) : 
 	""" Tracks trajectory of the solution path """
@@ -356,5 +443,6 @@ if __name__ == '__main__' :
 				(ss.name,ii,expid))	
 			ar = ARSolver(ss_exp) 
 			result_exp = ar.solve()
+
 
 	

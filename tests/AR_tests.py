@@ -190,3 +190,21 @@ class TestARSolverChou2006(object) :
 			eq_(self.ar.regressors[ii]['degrad'],[1,2,3,4])
 			eq_(self.ar.regressors[ii]['prod'],[1,2,3,4])
 
+	def test_core_init_params(self) : 
+		""" Test _core_init_params"""
+		self.ss = Chou2006()
+		self.ss.exptype= "fullinfo"
+		self.ss.equations = [1,3]
+		self.ss.constraint.initsol.beta['beta_1'] = 5.0
+		self.ss.constraint.initsol.h['h_1_1'] = 1.2
+		self.ar = ARSolver(self.ss)
+	
+		(a_list,b_list,g_list,h_list) = self.ar._core_init_params()
+
+		eq_(a_list,[1.0,1.0])
+		eq_(b_list,[5.0,1.0])
+		ass_f = lambda t : eq_(np.allclose(t[0],t[1]),True)
+		map(ass_f,zip(h_list,[np.array([1.2]),np.array([0,0])]))
+		map(ass_f,zip(g_list,[np.array([0]),np.array([0])]))
+		
+
