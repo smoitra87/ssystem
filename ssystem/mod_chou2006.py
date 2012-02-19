@@ -12,7 +12,12 @@ class ModifierChou2006(object) :
 	modified s-systems"""
 	def __init__(self) : 
 		# List of mods to be applied 
-		self.mods = [self.modNone,self.mod1]
+		mod_list1 = [self.modNone,self.mod1,self.mod2,self.mod3,\
+		self.mod4]
+		mod_list2 = [self.mod4]
+
+		self.mods = mod_list1
+				
 
 	def gen_modifications(self,ss)  : 
 		""" Generate a list of all modifications possible to ss """
@@ -25,11 +30,26 @@ class ModifierChou2006(object) :
 		return ss_list
 
 	def mod1(self,ss) : 
-		""" Throws away all but the first equation 
-		Asks algorithm to be strict when dealing with this type
+		""" Make algo use fullinfo
 		"""
 		# Set the experiment type to be under full information
 		ss.exptype = "fullinfo"
+		return ss
+
+	def mod2(self,ss) : 
+		""" Make algo use partial info""" 
+		ss.exptype = "partialinfo"
+		return ss
+
+	def mod3(self,ss) : 
+		""" Ask algo to return structure""" 
+		ss.exptype = "structure"
+		return ss
+
+	def mod4(self,ss) : 
+		""" Ask algo to run under full info for eqn1 only """
+		ss.exptype = "fullinfo"
+		ss.equations = [1]
 		return ss
 
 	def modNone(self,ss) : 

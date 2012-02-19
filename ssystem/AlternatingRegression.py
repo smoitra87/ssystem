@@ -176,28 +176,33 @@ to enforce constraints and good behavior of algorithm
 	def	_preprocessor(self) :  
 		""" Run preprocessing on ss to make compatible with exp type
 
-The following are the constraint concepts
+The following are the constraint concepts :-
 
 Modelspace : Basically whatever is given in the S-system.
-Lenient modelspace : A property of the algorithm which is used for catching crazy growing values
-softspace  : Initially set to half modelspace and then adjusted to go up to modelspace
+Lenient modelspace : A property of the algorithm which is used for 
+catching crazy growing values
+softspace  : Initially set to half modelspace and then adjusted to go
+ up to modelspace
 
 fullinfo:
     Regressors are not included
     Modelspace is enforced
-    modelspace may or may not be suitably modified to encode up/down regulation (+ve,-ve)
+    modelspace may or may not be suitably modified to encode up/down 
+	regulation (+ve,-ve)
     Lenient modelspace is enforced as well
 
 partialinfo:
     Union of prod degrad regressors
     Modelspace is enforced
-    modelspace may or may not be suitably modified to encode up/down regulation (+ve,-ve)
+    modelspace may or may not be suitably modified to encode up/down
+	 regulation (+ve,-ve)
     Lenient modelspace enforced as well
 
 noinfo:
     All regressors
     Modelspace is enforced
-    modelspace may or may not be suitably modified to encode up/down regulation (+ve,-ve)
+    modelspace may or may not be suitably modified to encode up/down 
+	regulation (+ve,-ve)
     Lenient modelspace enforced as well
     
 structure:
@@ -213,9 +218,77 @@ structure:
 		self._parse_softspace()
 		self._parse_initbound()
 		
+		# Set regressors according to exptype
+		self._set_regressors()
+
 		# Deal with exptype ??
+		if self.ss.exptype == 'fullinfo' :
+			pass
+		elif self.ss.exptype == 'partialinfo' : 
+			pass
+		elif self.ss.exptype == 'noinfo' : 
+			pass
+		elif self.ss.exptype == 'structure' :
+			pass
+		else : 
+			logging.error('Did not recognize exptype %s'% \
+			(self.ss.exptype))
+			sys.exit(1)
+
+		# Deal with equations
+		self.equations = self.ss.equations
+
+
 
 		# Deal with noisy data ??
+
+	def _set_regressors(self) : 
+		""" Set the regressors according to exptype """
+		logging.debug("Setting regressors")
+	
+		nvars = len(self.ss.variables)		
+
+		if self.ss.exptype in ('noinfo','structure') : 
+			prod = range(1,nvars+1)
+			degrad = prod
+			self.regressors = [{
+				'prod' : prod,
+				'degrad' : degrad
+			}]*len(self.ss.equations) 
+
+		elif self.ss.exptype == 'fullinfo' :
+			self.regressors = []
+			for eqn in self.ss.equations : 
+				prod=  self._find_regressors(eqn,'g')
+				degrad = self._find_regressors(eqn,'h')
+				self.regressors.append({
+					'prod':prod,
+					'degrad':degrad
+				})
+
+		elif self.ss.exptype == 'partialinfo' : 
+			self.regressors = []
+			for eqn in self.ss.equations : 
+				prod=  self._find_regressors(eqn,'g')
+				degrad = self._find_regressors(eqn,'h')
+				prod = list(set(prod).union(degrad))
+				degrad = prod
+				self.regressors.append({
+					'prod':prod,
+					'degrad':degrad
+				})
+
+		else :
+			logging.error('Did not recognize exptype %s'% \
+			(self.ss.exptype))
+			sys.exit(1)
+
+	def _find_regressors(self,eqn,varname) : 
+		""" Find true regressors from eqn and variable"""
+		true_params = self.ss._ss_params
+		params = true_params[varname][eqn-1]		
+		regressors = [ii+1 for ii,p in enumerate(params) if p!=0 ]		
+		return regressors
 
 	def _enforce_cons(self) : 
 		""" Enforce constraints"""

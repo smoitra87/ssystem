@@ -124,4 +124,6 @@ class TestARSolverChou2006(object) :
 		eq_(self.ar.modelspace['g'][1][0],(0.5,30.0))
 		eq_(self.ar.modelspace['g'][2][1],(0.33,20.0))
 		eq_(self.ar.modelspace['g'][3][1],(0.5,30.0))
-	
+
+	def test_regressors(self) : 
+		pass
