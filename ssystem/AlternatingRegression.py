@@ -378,82 +378,100 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 					self.logging.error(
 					'Terminating eqn%d because of complex pain'%(eqn))
 					break
+			
+				# Monitor and fix bp params if needed	
+				retcode = self._core_monitor(bp,eqnid,eqn,phase=1)	
+
+				# phase 2 components
 				
-				retcode = self._core_monitor_phase1(bp,eqnid,eqn)	
-#	
-#				# phase 2 components
-#				a = a_list(eqnid-1)
-#				g = g_list(eqnid-1)
-#				bp = np.concatenate((np.log(a),g))
-#				
-#				retcode = self._core_phase2(Cd,slopes,bp)
-#				
-#				if retcode == BAD :
-#					self.continueLoop = False
-#					break
-#	
-#				self._core_monitor_phase1(bp,eqnid)			
-#				
+				retcode,bd = self._core_phase2(slopes,Cd,bp,Lp,eqn)
+
+				if retcode == 2 : 
+					self.continueLoop = False
+					self.logging.error(
+					'Terminating eqn%d because of complex pain'%(eqn))
+					break
+
+				retcode = self._core_monitor(bd,eqnid,eqn,phase=2)	
+
 #				self.check_convergence()
 				
 				# For debug only
 				self._continueLoop = False
-	
-	def _core_monitor_phase1(self,bp,eqnid,eqn) : 
+
+	def _core_monitor(self,bx,eqnid,eqn,phase) : 
 		""" 
-Monitor the bp params returned after phase1
-Check that the bp params lie within the modelspace
+Here bx stands for either bp or bd, depending on which phase called
+Monitor the bx params returned after phase1
+Check that the bx params lie within the modelspace
 if they don't fix them 
 		"""
-		reg_p = self.regressors[eqnid]['prod']
-		a_mspace = self.modelspace['alpha'][eqn-1]
-		g_mspace = self.modelspace['g'][eqn-1]
-		g_mspace = [g_mspace[reg-1] for reg in reg_p]
+		# Depending on which phase is requesting monitor
+		if phase == 1 :
+			dynamics = 'prod'
+			var1 = 'alpha'
+			var2 = 'g'
+		elif phase == 2 : 
+			dynamics = 'degrad'
+			var1 = 'beta'
+			var2 = 'h'
+		else : 
+			self.logger.error("Unknown phase:%r"%(phase))
+			sys.exit(1)
 
-		alpha = np.exp(bp[0])
+		reg_x = self.regressors[eqnid][dynamics]
+		ab_mspace = self.modelspace[var1][eqn-1]
+		gh_mspace = self.modelspace[var2][eqn-1]
+		gh_mspace = [gh_mspace[reg-1] for reg in reg_x]
+
+		ab = np.exp(bx[0])
 		retcode = 0
 
-		# check alpha_mspace
-		if a_mspace == "nonZero"  :
-			# Check if alpha is really close to zero
-			if abs(np.exp(alpha)) < util.eps  :
-				bp[0] = np.log(util.eps)
+		print "reg_x is", reg_x
+		print "ab_mspace is", ab_mspace
+		print "gh_mspace is", gh_mspace
+		print "ab is", ab
+		print "bx is", bx
+
+		# check abb_mspace
+		if ab_mspace == "nonZero"  :
+			# Check if ab is really close to zero
+			if abs(np.exp(ab)) < util.eps  :
+				bx[0] = np.log(util.eps)
 				retcode = 1
 		else : 
-			if not within_tuple(a_mspace,np.exp(alpha)) : 
+			if not within_tuple(ab_mspace,np.exp(ab)) : 
 				self.logger.debug(
-				'alpha=%r out of mspace=%r'%(alpha,a_mspace))
+				'ab=%r out of mspace=%r'%(ab,ab_mspace))
 				retcode = 1
-				if alpha > a_mspace[1] : 
-					bp[0] = np.log(a_mspace[1]-util.eps)
+				if ab > ab_mspace[1] : 
+					bx[0] = np.log(ab_mspace[1]-util.eps)
 				else : 
-					bp[0] = np.log(a_mspace[0]+util.eps)
+					bx[0] = np.log(ab_mspace[0]+util.eps)
 		
-		# check g_mspace. Loop through all the g's there
+		# check gh_mspace. Loop through all the g's there
 		#	pdb.set_trace()
-		for ii,g in enumerate(bp[1:]) : 
-			g_space = g_mspace[ii]
-			if g_space == "nonZero"  :
+		for ii,gh in enumerate(bx[1:]) : 
+			gh_space = gh_mspace[ii]
+			if gh_space == "nonZero"  :
 				# Check if param is really close to zero
-				if abs(g) < util.eps  :
-					bp[1+ii] = random.choice([-util.eps,util.eps])
+				if abs(gh) < util.eps  :
+					bx[1+ii] = random.choice([-util.eps,util.eps])
 					retcode = 1
 			else : 
-				if not within_tuple(g_space,g) : 
+				if not within_tuple(gh_space,gh) : 
 					self.logger.debug(
 					'g%d=%r out of mspace=%r. Fixing..'%
-					(ii+1,g,g_space))
+					(ii+1,gh,gh_space))
 					retcode = 1
-					if alpha > a_mspace[1] : 
-						bp[ii+1] = g_space[1]-util.eps
+					if gh > gh_space[1] : 
+						bx[ii+1] = gh_space[1]-util.eps
 					else : 
-						bp[ii+1] = g_space[0]+util.eps
+						bx[ii+1] = gh_space[0]+util.eps
 				
 		
 		return retcode				
 
-
-	
 	def _core_phase1(self,slopes,Cp,bd,Ld,eqn)  : 
 		""" 
 Run phase1  : 
@@ -491,6 +509,42 @@ Run phase1  :
 
 		return retcode,bp	
 	
+	def _core_phase2(self,slopes,Cd,bp,Lp,eqn)  : 
+		""" 
+Run phase2  : 
+	Calculates prod terms and estimates bd
+		Return codes:
+		0 : Success
+		1 : Complex trouble, but solved
+		2 : Complex trouble, but could not solve
+		"""
+
+		prod = self._core_calc_prod(bp,Lp)
+		yp_ =  prod - slopes
+		retcode = 0 # Assuming success
+
+		# If yp_ <= 0 . Try to solve it by fixing alpha 
+		while (yp_ <= 0.0).any() and \
+		np.exp(bp[0])< ar.modelspace['alpha'][eqn-1][1] :
+
+			self.logger.debug(\
+			"Found complex pain. Dealing with it..")
+			retcode =  1 # Found complex pain
+			
+			bp[0] += np.log(2) # Mult alpha by 2 to fix complex pain
+			prod = self._core_calc_prod(bp,Lp)
+			yp_ = prod - slopes
+
+		if (yp_ <= 0.0).any() : 
+			self.logger.error('Could not deal with complex pain')
+			retcode = 2
+			return retcode,None	
+					
+		
+		yp = np.log(yp_) 
+		bd = np.dot(Cd,yp)
+
+		return retcode,bd
 
 
 	def _core_calc_degrad(self,bd,Ld) : 
@@ -516,14 +570,6 @@ It returns [n_sample x 1] array of prod values
 		prod = np.exp(prod)
 		return prod
 
-
-	def _core_phase2(self,Cd,slopes) :
-		""" Compute phase 2 """
-		pass
-
-	def _core_monitor_phase2(self,bd) : 
-		""" Monitor the bd params returned after phase2 """
-		pass
 
 	def _core_init_params(self) : 
 		""" 
