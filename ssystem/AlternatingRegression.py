@@ -181,7 +181,7 @@ to enforce constraints and good behavior of algorithm
 The following are the constraint concepts :-
 
 Modelspace : Basically whatever is given in the S-system.
-Lenient modelspace : A property of the algorithm which is used for 
+hardspace : A property of the algorithm which is used for 
 catching crazy growing values
 softspace  : Initially set to half modelspace and then adjusted to go
  up to modelspace
@@ -240,7 +240,14 @@ structure:
 		# Deal with equations
 		self.equations = self.ss.equations
 
-
+		# Set hard constraints - Constraints to catch crazily growing 
+		# values, set by algorithm
+		self.hardspace = {
+		'alpha' : (0,100),
+		'beta' : (0,100),
+		'g' : (-10,-10),
+		'h' : (-10,-10)
+		}
 
 		# Deal with noisy data ??
 
