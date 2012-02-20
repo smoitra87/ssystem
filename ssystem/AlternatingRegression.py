@@ -697,6 +697,7 @@ Contains values for tracking convergence, maxiter, tolerance
 	
 		if self.loopiter >= self.maxiter : 
 			self.maxiter_exceeded = True
+			self.continueLoop = False
 	
 	def set_SSE(self,ssep,ssed,sse) :
 		""" Set the SSE values for the diff phases"""
