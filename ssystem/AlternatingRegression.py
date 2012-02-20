@@ -1,5 +1,5 @@
 """ 
-This module implements the Alternating Regression code which is as 
+This module implements the Alternating Regression code which is as     
 described in 
 "Parameter Estimation in S-systems with Alternating Regression" - 
 Chou,Voit, et. al
@@ -304,34 +304,27 @@ structure:
 		regressors = [ii+1 for ii,p in enumerate(params) if p!=0 ]		
 		return regressors
 
-	def _enforce_cons(self) : 
-		""" Enforce constraints"""
-		logging.debug('Enforcing constraints')
-		
-	
-	def _monitor(self) : 
-		""" Monitor and enforce constraints as needed """
-		logging.debug('Monitoring constraints and params ')
-
 	def _postprocessor(self) : 
 		""" Run post processing steps """
-		logging.debug("Running AR post processor")
+		logging.debug("nning AR post processor")
 		pass
 
 
-	def solve(self,maxiter=1000,tol=-7) : 
+	def solve(self,**kwargs) : 
 		""" Runs the core routine """
 		logging.debug('Beginning AR solver')	
-				
+		
+		self.art = ARTracker()
+		
 		# Execute the AR core
 		for exp in ss.experiments : 
-			self._core(exp,maxiter,tol)
+			self._core(exp)
 
 		# Run post processing steps
 		self._postprocessor()
 	
 
-	def _core(self,exp,maxiter,tol) : 
+	def _core(self,exp) : 
 		"""
 Core routine of the ARSolver class
 
@@ -349,8 +342,6 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 		a_list,b_list,g_list,h_list = self._core_init_params()
 
 		# Set Loop params
-		self._continueLoop = True
-		loopiter = 0
 		
 		for eqnid,eqn in enumerate(self.equations) :
 			Cp = cp_list[eqnid]
@@ -367,37 +358,57 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 			slopes = exp.profile.slopes[:,eqn-1]
 			
 
-			while(self._continueLoop == True) :
+			while(self.art.continueLoop == True) :
 				
 				# phase 1 components
 
-				retcode,bp = self._core_phase1(slopes,Cp,bd,Ld,eqn)
+				retcode,bp,ssep = self._core_phase1(
+									slopes,Cp,bd,Lp,Ld,eqn)
 
 				if retcode == 2 : 
-					self.continueLoop = False
+					self.art.continueLoop = False
 					self.logging.error(
 					'Terminating eqn%d because of complex pain'%(eqn))
-					break
-			
+					break			
+
+		
+
 				# Monitor and fix bp params if needed	
-				retcode = self._core_monitor(bp,eqnid,eqn,phase=1)	
+				retcode1 = self._core_monitor(bp,eqnid,eqn,phase=1)	
 
 				# phase 2 components
 				
-				retcode,bd = self._core_phase2(slopes,Cd,bp,Lp,eqn)
+				retcode,bd,ssed = self._core_phase2(
+					slopes,Cd,bp,Lp,Ld,eqn)
 
 				if retcode == 2 : 
-					self.continueLoop = False
+					self.art.continueLoop = False
 					self.logging.error(
 					'Terminating eqn%d because of complex pain'%(eqn))
 					break
 
-				retcode = self._core_monitor(bd,eqnid,eqn,phase=2)	
+				# Monitor bd ms 
+				retcode2 = self._core_monitor(bd,eqnid,eqn,phase=2)					
+				# Calculate sse
+				prod = self._core_calc_prod(bp,Lp)
+				degrad = self._core_calc_degrad(bd,Ld)
+				e = slopes - prod + degrad
+				sse = np.dot(e,e)			
+	
+				# debug
+				print "ssep=%f,ssed=%f,sse=%f"%(ssep,ssed,sse)
 
-#				self.check_convergence()
-				
+				# Perform bookkeeping and convergence checks
+				self.art.set_SSE(ssep,ssed,sse)
+				self.art.set_retcodes(retcode1,retcode2)
+				self.art.bookkeep()	
+				self.art.check_termination()			
+	
 				# For debug only
-				self._continueLoop = False
+				self.art.continueLoop = False
+
+		
+
 
 	def _core_monitor(self,bx,eqnid,eqn,phase) : 
 		""" 
@@ -427,11 +438,11 @@ if they don't fix them
 		ab = np.exp(bx[0])
 		retcode = 0
 
-		print "reg_x is", reg_x
-		print "ab_mspace is", ab_mspace
-		print "gh_mspace is", gh_mspace
-		print "ab is", ab
-		print "bx is", bx
+#		print "reg_x is", reg_x
+#		print "ab_mspace is", ab_mspace
+#		print "gh_mspace is", gh_mspace
+#		print "ab is", ab
+#		print "bx is", bx
 
 		# check abb_mspace
 		if ab_mspace == "nonZero"  :
@@ -472,7 +483,7 @@ if they don't fix them
 		
 		return retcode				
 
-	def _core_phase1(self,slopes,Cp,bd,Ld,eqn)  : 
+	def _core_phase1(self,slopes,Cp,bd,Lp,Ld,eqn)  : 
 		""" 
 Run phase1  : 
 	Calculates degrad terms and estimates bp
@@ -501,15 +512,19 @@ Run phase1  :
 		if (yd_ <= 0.0).any() : 
 			self.logger.error('Could not deal with complex pain')
 			retcode = 2
-			return retcode,None	
+			return retcode,None,None
 					
 		
 		yd = np.log(yd_) 
 		bp = np.dot(Cp,yd)
-
-		return retcode,bp	
 	
-	def _core_phase2(self,slopes,Cd,bp,Lp,eqn)  : 
+		# Calculate ssep
+		e = yd - np.dot(Lp,bp)
+		ssep = np.dot(e,e)
+			
+		return retcode,bp,ssep	
+	
+	def _core_phase2(self,slopes,Cd,bp,Lp,Ld,eqn)  : 
 		""" 
 Run phase2  : 
 	Calculates prod terms and estimates bd
@@ -544,7 +559,11 @@ Run phase2  :
 		yp = np.log(yp_) 
 		bd = np.dot(Cd,yp)
 
-		return retcode,bd
+		# Calculate ssed
+		ed = yp - np.dot(Ld,bd)
+		ssed = np.dot(ed,ed)
+
+		return retcode,bd,ssed
 
 
 	def _core_calc_degrad(self,bd,Ld) : 
@@ -647,6 +666,47 @@ Similarly for Ld
 
 			
 		return (lp_list,ld_list,cp_list,cd_list)
+
+class ARTracker(object) : 
+	""" 
+Contains values for tracking convergence, maxiter, tolerance
+	"""
+	def __init__(self,maxiter=1000,tol=10e-7,**kwargs) : 
+		self.maxiter = maxiter
+		self.tol = tol
+		self.continueLoop = True
+		self.loopiter = 0
+		self.ssep = []
+		self.ssed = []
+		self.rc1 = []
+		self.rc2 = []
+		self.converged = False
+		self.maxiter_exceeded = False
+
+	def bookkeep(self) : 
+		""" Perform bookkeeping operations for AR algo"""
+		self.loopiter += 1
+
+	def check_termination(self) : 
+		""" Check convergence for algo"""
+		rc_all = self.rc1[-1]+self.rc2[-1]
+		if rc_all == 0 and self.ssep[-1] < self.tol \
+			 and self.ssed[-1] < self.tol : 
+			self.converged = True
+			self.continueLoop = False 
+	
+		if self.loopiter >= self.maxiter : 
+			self.maxiter_exceeded = True
+	
+	def set_SSE(self,ssep,ssed,sse) :
+		""" Set the SSE values for the diff phases"""
+		self.ssep.append(ssep)
+		self.ssed.append(ssed)
+
+	def set_retcodes(self,rc1,rc2) : 
+		""" Set the return codes for phase I and II"""
+		self.rc1.append(rc1)
+		self.rc2.append(rc2)
 
 
 class TrajectoryTracker(object) : 
