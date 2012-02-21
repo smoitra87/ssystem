@@ -331,13 +331,6 @@ class TestARSolverChou2006(object) :
 		""" Test monitor """
 		pass
 
-	def test_core_calc_prod(self) : 
-		""" Test prod """
-		pass
-
-	def test_core_calc_degrad(self) : 
-		""" test degrad"""
-		pass
 
 	def test_core(self) : 
 		""" Put all together and test """	
