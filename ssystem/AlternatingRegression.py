@@ -314,11 +314,11 @@ structure:
 		""" Runs the core routine """
 		logging.debug('Beginning AR solver')	
 		
-		self.art = ARTracker()
-		
+	
 		# Execute the AR core
 		for exp in ss.experiments : 
-			self._core(exp)
+				self.art = ARTracker()
+				self._core(exp)
 
 		# Run post processing steps
 		self._postprocessor()

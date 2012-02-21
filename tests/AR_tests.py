@@ -8,8 +8,25 @@ from ssystem.AlternatingRegression import ARSolver
 from ssystem.other_models import Chou2006
 import numpy.testing as npt
 import numpy as np
+from numpy import linalg as LA
 
 from ssystem.utility import same_dict
+from ssystem.base import Profile
+
+
+
+
+class TestARTracker(object) :
+	""" Test cases for the AR Tracker """
+	def setUp(self) : 
+		pass
+	
+	def tearDown(self) :
+		pass
+	
+	def test_bookkeep(self) :
+		""" Test the bookkeep command """
+		pass
 
 class TestARSolverChou2006(object) :
 	""" Test cases for the AR solver """
@@ -206,5 +223,122 @@ class TestARSolverChou2006(object) :
 		ass_f = lambda t : eq_(np.allclose(t[0],t[1]),True)
 		map(ass_f,zip(h_list,[np.array([1.2]),np.array([0,0])]))
 		map(ass_f,zip(g_list,[np.array([0]),np.array([0])]))
-		
 
+
+	def test_core_calc_design(self) : 
+		""" Test the design matrix"""
+		
+		# Test under the case of fullinfo
+		
+		# Generate dummy data
+		ss = Chou2006()
+		ss.exptype = "fullinfo"
+		ss.equations = [1]
+		ar = ARSolver(ss)
+
+		prof = ss.experiments[0].profile
+					
+
+		reg_p = [3]
+		reg_d = [1]
+		
+		Lp = np.ones(prof.n_sample)
+		Ld = np.ones(prof.n_sample)
+		
+		X_p = [np.log(prof.var[:,2])]
+		X_d = [np.log(prof.var[:,0])]
+
+		Lp = np.vstack((Lp,np.array(X_p))).T
+		Ld = np.vstack((Ld,np.array(X_d))).T
+
+		Cp = np.dot(LA.inv(np.dot(Lp.T,Lp)),Lp.T)
+		Cd = np.dot(LA.inv(np.dot(Ld.T,Ld)),Ld.T)
+
+
+		lp_list1,ld_list1 = [Lp],[Ld]
+		cp_list1,cd_list1 = [Cp],[Cd]	
+	
+		# Generate code results
+		lp_list2,ld_list2,cp_list2,cd_list2 = ar._core_calc_design(prof)
+
+		eq_(len(lp_list2),1)		
+		eq_(len(ld_list2),1)
+		eq_(len(cp_list2),1)		
+		eq_(len(cd_list2),1)
+		assert np.allclose(Lp,lp_list2[0])
+		assert np.allclose(Ld,ld_list2[0])
+		assert np.allclose(Cp,cp_list2[0])
+		assert np.allclose(Cd,cd_list2[0])
+
+		# Test under the case of no info
+		ss = Chou2006()
+		ss.exptype = "noinfo"
+		ss.equations = [1,2]
+		ar = ARSolver(ss)
+
+		prof = ss.experiments[0].profile
+					
+		lp_list1,ld_list1 = [],[]
+		cp_list1,cd_list1 = [],[]	
+
+		reg_p = [1,2,3,4]
+		reg_d = [1,2,3,4]
+		
+		Lp = np.ones(prof.n_sample)
+		Ld = np.ones(prof.n_sample)
+		
+		X_p = np.log(prof.var.T)
+		X_d = np.log(prof.var.T)
+
+		print "X_p.shape", X_p.shape
+		print "X_d.shape", X_d.shape
+
+		Lp = np.vstack((Lp,X_p)).T
+		Ld = np.vstack((Ld,X_d)).T
+
+		Cp = np.dot(LA.inv(np.dot(Lp.T,Lp)),Lp.T)
+		Cd = np.dot(LA.inv(np.dot(Ld.T,Ld)),Ld.T)
+
+
+		lp_list1,ld_list1 = [Lp,Lp],[Ld,Ld]
+		cp_list1,cd_list1 = [Cp,Cp],[Cd,Cd]	
+	
+		# Generate code results
+		lp_list2,ld_list2,cp_list2,cd_list2 = ar._core_calc_design(prof)
+
+		eq_(len(lp_list2),2)		
+		eq_(len(ld_list2),2)
+		eq_(len(cp_list2),2)		
+		eq_(len(cd_list2),2)
+		assert np.allclose(Lp,lp_list2[0])
+		assert np.allclose(Ld,ld_list2[0])
+		assert np.allclose(Cp,cp_list2[0])
+		assert np.allclose(Cd,cd_list2[0])
+		assert np.allclose(Lp,lp_list2[1])
+		assert np.allclose(Ld,ld_list2[1])
+		assert np.allclose(Cp,cp_list2[1])
+		assert np.allclose(Cd,cd_list2[1])
+
+	def test_core_phase1(self) :
+		""" The phase1"""
+		pass
+
+	def test_core_phase2(self) :
+		""" Test phase 2 """
+		pass
+
+	def test_core_monitor(self) :
+		""" Test monitor """
+		pass
+
+	def test_core_calc_prod(self) : 
+		""" Test prod """
+		pass
+
+	def test_core_calc_degrad(self) : 
+		""" test degrad"""
+		pass
+
+	def test_core(self) : 
+		""" Put all together and test """	
+		pass
