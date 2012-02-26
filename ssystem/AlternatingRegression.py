@@ -405,7 +405,7 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 				self.art.check_termination()			
 	
 				# For debug only
-				self.art.continueLoop = False
+				#self.art.continueLoop = False
 
 		
 
@@ -413,7 +413,7 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 	def _core_monitor(self,bx,eqnid,eqn,phase) : 
 		""" 
 Here bx stands for either bp or bd, depending on which phase called
-Monitor the bx params returned after phase1
+Monitor the bx params returned after respective phases
 Check that the bx params lie within the modelspace
 if they don't fix them 
 		"""
@@ -451,7 +451,9 @@ if they don't fix them
 				bx[0] = np.log(util.eps)
 				retcode = 1
 		else : 
-			if not within_tuple(ab_mspace,np.exp(ab)) : 
+			if not within_tuple(ab_mspace,ab) : 
+				self.logger.debug(
+				'Monitor found violation after phase%d',phase)
 				self.logger.debug(
 				'ab=%r out of mspace=%r'%(ab,ab_mspace))
 				retcode = 1
@@ -471,6 +473,8 @@ if they don't fix them
 					retcode = 1
 			else : 
 				if not within_tuple(gh_space,gh) : 
+					self.logger.debug(
+				'Monitor found violation after phase%d',phase)
 					self.logger.debug(
 					'g%d=%r out of mspace=%r. Fixing..'%
 					(ii+1,gh,gh_space))
@@ -570,7 +574,7 @@ Run phase2  :
 
 		# Calculate ssed
 		ssed = self._core_calc_sse(yp,Ld,bd)
-		util.plot_pair(yp,np.dot(Ld,bd),labels=['yp','Ld*bd'])
+		#util.plot_pair(yp,np.dot(Ld,bd),labels=['yp','Ld*bd'])
 
 		return retcode,bd,ssed
 
@@ -680,7 +684,7 @@ class ARTracker(object) :
 	""" 
 Contains values for tracking convergence, maxiter, tolerance
 	"""
-	def __init__(self,maxiter=1000,tol=10e-7,**kwargs) : 
+	def __init__(self,maxiter=5,tol=10e-7,**kwargs) : 
 		self.maxiter = maxiter
 		self.tol = tol
 		self.continueLoop = True
