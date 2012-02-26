@@ -396,7 +396,7 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 				sse = np.dot(e,e)			
 	
 				# debug
-				print "ssep=%f,ssed=%f,sse=%f"%(ssep,ssed,sse)
+				#print "ssep=%f,ssed=%f,sse=%f"%(ssep,ssed,sse)
 
 				# Perform bookkeeping and convergence checks
 				self.art.set_SSE(ssep,ssed,sse)
@@ -406,8 +406,26 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 	
 				# For debug only
 				#self.art.continueLoop = False
-
-		
+			if(self.art.converged == True ) :
+				self.logger.info("Convergence Succeeded..!")
+				self.logger.debug("ssep=%f,ssed=%f,sse=%f"%\
+					(ssep,ssed,sse))
+				self.logger.debug("alpha=%r"%(np.exp(bp[0])))
+				self.logger.debug("g=%r"%(bp[1:]))
+				self.logger.debug("beta=%r"%(np.exp(bd[0])))
+				self.logger.debug("h=%r"%(bd[1:]))
+				util.plot_pair(slopes,prod-degrad,['true','estimate'])
+			else : 
+				self.logger.info("Convergence Failed..!")
+				self.logger.debug("maxiter_exceeded ? %r"%\
+					(self.art.maxiter_exceeded))
+				self.logger.debug("ssep=%f,ssed=%f,sse=%f"%\
+					(ssep,ssed,sse))
+				self.logger.debug("alpha=%r"%(np.exp(bp[0])))
+				self.logger.debug("g=%r"%(bp[1:]))
+				self.logger.debug("beta=%r"%(np.exp(bd[0])))
+				self.logger.debug("h=%r"%(bd[1:]))
+	
 
 
 	def _core_monitor(self,bx,eqnid,eqn,phase) : 
@@ -684,7 +702,7 @@ class ARTracker(object) :
 	""" 
 Contains values for tracking convergence, maxiter, tolerance
 	"""
-	def __init__(self,maxiter=5,tol=10e-7,**kwargs) : 
+	def __init__(self,maxiter=10000,tol=10e-6,**kwargs) : 
 		self.maxiter = maxiter
 		self.tol = tol
 		self.continueLoop = True
@@ -693,8 +711,10 @@ Contains values for tracking convergence, maxiter, tolerance
 		self.ssed = []
 		self.rc1 = []
 		self.rc2 = []
+		self.params = None # Contains params from iterations
 		self.converged = False
 		self.maxiter_exceeded = False
+		self.save_trace = False
 
 	def bookkeep(self) : 
 		""" Perform bookkeeping operations for AR algo"""
@@ -710,17 +730,28 @@ Contains values for tracking convergence, maxiter, tolerance
 	
 		if self.loopiter >= self.maxiter : 
 			self.maxiter_exceeded = True
+			self.converged = False
 			self.continueLoop = False
 	
 	def set_SSE(self,ssep,ssed,sse) :
 		""" Set the SSE values for the diff phases"""
-		self.ssep.append(ssep)
-		self.ssed.append(ssed)
+		if self.save_trace :
+			# save the ret codes from the last iter
+			self.ssep.append(ssep)
+			self.ssed.append(ssed)
+		else : 
+			self.ssep = [ssep]
+			self.ssed = [ssed]
 
 	def set_retcodes(self,rc1,rc2) : 
 		""" Set the return codes for phase I and II"""
-		self.rc1.append(rc1)
-		self.rc2.append(rc2)
+		if self.save_trace : 
+			self.rc1.append(rc1)
+			self.rc2.append(rc2)
+		else : 
+			# Save the return codes from the last iter
+			self.rc1 = [rc1]
+			self.rc2 = [rc2]
 
 
 class TrajectoryTracker(object) : 
