@@ -2,10 +2,20 @@
 import numpy as np
 from scipy import interpolate
 import logging, sys,os
+import pylab as pl
+
 
 dbglevel = 1
 loglevel = logging.DEBUG
 eps = 10e-7
+
+def plot_pair(v1,v2,labels=['v1','v2']) :
+	""" Plot a pair of vectors """
+	assert len(v1) == len(v2)
+	nPoints = len(v1)
+	pl.plot(range(nPoints),v1,range(nPoints),v2)
+	pl.legend(labels)
+	pl.show()
 
 def get_basedir() :
 	""" Get the base directory of the project"""

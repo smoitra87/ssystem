@@ -502,7 +502,7 @@ Run phase1  :
 		np.exp(bd[0])< ar.modelspace['beta'][eqn-1][1] :
 
 			self.logger.debug(\
-			"Found complex pain. Dealing with it..")
+			"Found complex pain in phase 1. Dealing with it..")
 			retcode =  1 # Found complex pain
 			
 			bd[0] += np.log(2) # Mult beta by 2 to fix complex pain
@@ -519,10 +519,19 @@ Run phase1  :
 		bp = np.dot(Cp,yd)
 	
 		# Calculate ssep
-		e = yd - np.dot(Lp,bp)
-		ssep = np.dot(e,e)
+		ssep = self._core_calc_sse(yd,Lp,bp)
+		# DEBUG
+		#util.plot_pair(yd,np.dot(Lp,bp),labels=['yd','Lp*bp'])
+
+			
 			
 		return retcode,bp,ssep	
+
+	def _core_calc_sse(self,y,L,b)  : 
+		""" Calculates SSE """
+		e = y - np.dot(L,b)
+		sse = np.dot(e,e)
+		return sse
 	
 	def _core_phase2(self,slopes,Cd,bp,Lp,Ld,eqn)  : 
 		""" 
@@ -543,7 +552,7 @@ Run phase2  :
 		np.exp(bp[0])< ar.modelspace['alpha'][eqn-1][1] :
 
 			self.logger.debug(\
-			"Found complex pain. Dealing with it..")
+			"Found complex pain in phase2. Dealing with it..")
 			retcode =  1 # Found complex pain
 			
 			bp[0] += np.log(2) # Mult alpha by 2 to fix complex pain
@@ -560,8 +569,8 @@ Run phase2  :
 		bd = np.dot(Cd,yp)
 
 		# Calculate ssed
-		ed = yp - np.dot(Ld,bd)
-		ssed = np.dot(ed,ed)
+		ssed = self._core_calc_sse(yp,Ld,bd)
+		util.plot_pair(yp,np.dot(Ld,bd),labels=['yp','Ld*bd'])
 
 		return retcode,bd,ssed
 

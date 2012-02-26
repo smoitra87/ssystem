@@ -319,6 +319,15 @@ class TestARSolverChou2006(object) :
 		assert np.allclose(Cp,cp_list2[1])
 		assert np.allclose(Cd,cd_list2[1])
 
+	def test_core_calc_sse(self) : 
+		""" Test the sse """
+		calc_sse = self.ar._core_calc_sse
+		L = np.array([[1,2,3],[2,3,4]])
+		b = np.array([1,2,3])
+		y = np.array([12,15])
+		assert_almost_equal(calc_sse(y,L,b),29)
+
+
 	def test_core_phase1(self) :
 		""" The phase1"""
 		pass
