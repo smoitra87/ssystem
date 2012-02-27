@@ -313,7 +313,10 @@ structure:
 	def solve(self,**kwargs) : 
 		""" Runs the core routine """
 		logging.debug('Beginning AR solver')	
+	
+		# Extract kwargs and pass rest to ARTracker
 		
+	
 		# List of trackers for all experiments
 		self.all_exp_art = []	
 
@@ -322,14 +325,14 @@ structure:
 				self.exp_art = {} # AR tracker for a single experiments
 				self.exp_art['id'] = expid+1
 				self.exp_art['eqns'] = []
-				self._core(exp)
+				self._core(exp,**kwargs)
 				self.all_exp_art.append(self.exp_art)
 
 		#Run post processing steps
 		self._postprocessor()
 	
 
-	def _core(self,exp) : 
+	def _core(self,exp,**kwargs) : 
 		"""
 Core routine of the ARSolver class
 
@@ -349,7 +352,7 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 		# Set Loop params
 		
 		for eqnid,eqn in enumerate(self.equations) :
-			self.art = ARTracker()
+			self.art = ARTracker(**kwargs)
 			Cp = cp_list[eqnid]
 			Cd = cd_list[eqnid]	
 			Lp = lp_list[eqnid]			
@@ -793,7 +796,7 @@ if __name__ == '__main__' :
 			print("Running ss: %s mod: %d exp: %d"% 
 				(ss.name,ii,expid))	
 			ar = ARSolver(ss_exp) 
-			#result_exp = ar.solve(maxiter=2,tol=10e-6)
-			result_exp = ar.solve()
+			result_exp = ar.solve(maxiter=1,tol=10e-6)
+			#result_exp = ar.solve()
 
 	

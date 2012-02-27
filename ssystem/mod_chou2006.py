@@ -16,7 +16,7 @@ class ModifierChou2006(object) :
 		self.mod4]
 		mod_list2 = [self.mod6]
 		mod_list3 = [self.mod4] # works
-		self.mods = mod_list3
+		self.mods = mod_list2
 		
 				
 
