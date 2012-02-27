@@ -417,11 +417,19 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 				#self.art.continueLoop = False
 
 			# store the alpha and the beta values
-			self.art.params['alpha'] = np.exp(bp[0])
-			self.art.params['beta'] = np.exp(bd[0])
-			self.art.params['g'] = bp[1:]
-			self.art.params['h'] = bd[1:]
+			if retcode != 2 : 
+				self.art.params['alpha'] = np.exp(bp[0])
+				self.art.params['beta'] = np.exp(bd[0])
+				self.art.params['g'] = bp[1:]
+				self.art.params['h'] = bd[1:]
+			else : 
+				self.art.params = None
+				self.exp_art['eqns'].append(self.art)
+				break
+
+			# Append AR Trace to Experiment Trace list
 			self.exp_art['eqns'].append(self.art)
+
 
 			if(self.art.converged == True ) :
 				self.logger.info("Convergence Succeeded..!")
@@ -727,12 +735,13 @@ Contains values for tracking convergence, maxiter, tolerance
 		self.loopiter = 0
 		self.ssep = []
 		self.ssed = []
+		self.sse = []
 		self.rc1 = []
 		self.rc2 = []
 		self.params = {} # Contains params from iterations
 		self.converged = False
 		self.maxiter_exceeded = False
-		self.save_trace = False
+		self.save_trace = True
 
 	def bookkeep(self) : 
 		""" Perform bookkeeping operations for AR algo"""
@@ -757,9 +766,11 @@ Contains values for tracking convergence, maxiter, tolerance
 			# save the ret codes from the last iter
 			self.ssep.append(ssep)
 			self.ssed.append(ssed)
+			self.sse.append(sse)
 		else : 
 			self.ssep = [ssep]
 			self.ssed = [ssed]
+			self.sse = [sse]
 
 	def set_retcodes(self,rc1,rc2) : 
 		""" Set the return codes for phase I and II"""
@@ -771,11 +782,21 @@ Contains values for tracking convergence, maxiter, tolerance
 			self.rc1 = [rc1]
 			self.rc2 = [rc2]
 
+	def plot_sse(self,sel='pd',niter=None) : 
+		""" Plot the sse values """
+		if not niter :
+			niter = len(self.sse)
 
-class TrajectoryTracker(object) : 
-	""" Tracks trajectory of the solution path """
-	def __init__(self) : 
-		pass
+		if sel == "all" :
+			pl.plot(range(niter),self.sse[:niter],label="SSE")
+			pl.plot(range(niter),self.ssep[:niter],label="SSEp")
+			pl.plot(range(niter),self.ssed[:niter],label="SSEd")
+		else : 
+			pl.plot(range(niter),self.ssep[:niter],label="SSEp")
+			pl.plot(range(niter),self.ssed[:niter],label="SSEd")
+
+		pl.legend(loc="upper left")
+		pl.show()
 
 def _exp_splayer(ss) : 
 	""" Splays the experiments and packs them into a new ss"""
@@ -796,7 +817,7 @@ if __name__ == '__main__' :
 			print("Running ss: %s mod: %d exp: %d"% 
 				(ss.name,ii,expid))	
 			ar = ARSolver(ss_exp) 
-			result_exp = ar.solve(maxiter=1,tol=10e-6)
+			result_exp = ar.solve(maxiter=1000,tol=10e-6)
 			#result_exp = ar.solve()
 
 	
