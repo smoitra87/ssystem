@@ -13,6 +13,7 @@ from numpy import linalg as LA
 from ssystem.utility import same_dict
 from ssystem.base import Profile
 
+from nose.plugins.attrib import attr
 
 
 
@@ -341,8 +342,9 @@ class TestARSolverChou2006(object) :
 		pass
 
 
+	@attr('slow')
 	def test_fullinfo1(self) : 
-		""" RUN AR (long)  eqn 1 under full info """	
+		""" RUN AR (slow)  eqn 1 under full info """	
 		ss = Chou2006()
 		ss.exptype = "fullinfo"
 		ss.equations = [1]
@@ -360,8 +362,9 @@ class TestARSolverChou2006(object) :
 		assert np.allclose(sol['g'],art.params['g'],atol=0.5)	
 		assert np.allclose(sol['h'],art.params['h'],atol=0.5)	
 
+	@attr('slow')
 	def test_fullinfo2(self) : 
-		""" RUN AR (long)  eqn 2 under full info """	
+		""" RUN AR (slow)  eqn 2 under full info """	
 		ss = Chou2006()
 		ss.exptype = "fullinfo"
 		ss.equations = [2]
@@ -380,3 +383,18 @@ class TestARSolverChou2006(object) :
 		assert np.allclose(sol['h'],art.params['h'],atol=0.5)	
 
 		#assert_equal_dict(art.params,sol)
+
+	@attr('slow')
+	def test_partialinfo1(self) :
+		""" Run AR (slow) on eqn 1 under partial info """
+		ss = Chou2006()
+		ss.exptype = "partialinfo"
+		ss.equations = [1]
+		initsol = ss.constraint.initsol
+		initsol.beta['beta_1'] = 20.0
+		initsol.h['h_1_1'] = 0.1
+		ar = ARSolver(ss)
+		eq_(ar.initsol['beta'][0],20.0)
+		eq_(ar.initsol['h'][0][0],0.1)
+		
+

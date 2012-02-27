@@ -373,7 +373,7 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 
 				if retcode == 2 : 
 					self.art.continueLoop = False
-					self.logging.error(
+					self.logger.error(
 					'Terminating eqn%d because of complex pain'%(eqn))
 					break			
 
@@ -389,7 +389,7 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 
 				if retcode == 2 : 
 					self.art.continueLoop = False
-					self.logging.error(
+					self.logger.error(
 					'Terminating eqn%d because of complex pain'%(eqn))
 					break
 
@@ -599,7 +599,7 @@ Run phase2  :
 		if (yp_ <= 0.0).any() : 
 			self.logger.error('Could not deal with complex pain')
 			retcode = 2
-			return retcode,None	
+			return retcode,None,None	
 					
 		
 		yp = np.log(yp_) 
@@ -793,7 +793,7 @@ if __name__ == '__main__' :
 			print("Running ss: %s mod: %d exp: %d"% 
 				(ss.name,ii,expid))	
 			ar = ARSolver(ss_exp) 
+			#result_exp = ar.solve(maxiter=2,tol=10e-6)
 			result_exp = ar.solve()
-
 
 	
