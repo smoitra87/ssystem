@@ -404,30 +404,34 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 				e = slopes - prod + degrad
 				sse = np.dot(e,e)			
 	
-				# debug
-				#print "ssep=%f,ssed=%f,sse=%f"%(ssep,ssed,sse)
-
 				# Perform bookkeeping and convergence checks
 				self.art.set_SSE(ssep,ssed,sse)
+				self.art.set_params(bp,bd)
 				self.art.set_retcodes(retcode1,retcode2)
 				self.art.bookkeep()	
 				self.art.check_termination()			
 	
 				# For debug only
-				#self.art.continueLoop = False
+#				self.logger.debug("ssep=%f,ssed=%f,sse=%f"%\
+#					(ssep,ssed,sse))
+#				self.logger.debug("alpha=%r"%(np.exp(bp[0])))
+#				self.logger.debug("g=%r"%(bp[1:]))
+#				self.logger.debug("beta=%r"%(np.exp(bd[0])))
+#				self.logger.debug("h=%r"%(bd[1:]))
 
 			# store the alpha and the beta values
-			if retcode != 2 : 
-				self.art.params['alpha'] = np.exp(bp[0])
-				self.art.params['beta'] = np.exp(bd[0])
-				self.art.params['g'] = bp[1:]
-				self.art.params['h'] = bd[1:]
-			else : 
-				self.art.params = None
-				self.exp_art['eqns'].append(self.art)
-				break
-
 			# Append AR Trace to Experiment Trace list
+			if not self.art.save_trace : 
+				if (bp is None) or (bd is None): 
+					_params = None	
+				else : 
+					_params = {}
+					_params['alpha'] = np.exp(bp[0])
+					_params['beta'] = np.exp(bd[0])
+					_params['g'] = bp[1:]
+					_params['h'] = bd[1:]
+				self.art.params = [_params]
+			
 			self.exp_art['eqns'].append(self.art)
 
 
@@ -738,7 +742,7 @@ Contains values for tracking convergence, maxiter, tolerance
 		self.sse = []
 		self.rc1 = []
 		self.rc2 = []
-		self.params = {} # Contains params from iterations
+		self.params = [] # Contains params from iterations
 		self.converged = False
 		self.maxiter_exceeded = False
 		self.save_trace = True
@@ -781,6 +785,47 @@ Contains values for tracking convergence, maxiter, tolerance
 			# Save the return codes from the last iter
 			self.rc1 = [rc1]
 			self.rc2 = [rc2]
+
+	def set_params(self,bp,bd) : 
+		""" Save the params """
+		if self.save_trace : 
+			if (bp is None) or (bd is None): 
+				_params = None	
+			else : 
+				_params = {}
+				_params['alpha'] = np.exp(bp[0])
+				_params['beta'] = np.exp(bd[0])
+				_params['g'] = bp[1:]
+				_params['h'] = bd[1:]
+	
+			self.params.append(_params)
+
+	def plot_params(self,sel='all',niter=None) : 
+		""" Plot all the params """
+		alpha = np.array([param['alpha'] for param in self.params])
+		beta = np.array([param['beta'] for param in self.params])
+		g = np.array([param['g'] for param in self.params])
+		h = np.array([param['h'] for param in self.params])
+		pdict = {
+			'alpha' : alpha,
+			'beta' : beta,
+			'g' : g,
+			'h' : h
+		}	
+	
+		if sel == 'all' : 
+			for key in pdict.keys() : 
+				pl.plot(pdict[key],label=key)
+				pl.legend()
+			pl.xlabel("Iteration")
+			pl.ylabel("Params")
+
+		else : 
+			pl.plot(pdict[sel],label=sel)
+			pl.legend()
+			pl.xlabel("Iteration")
+			pl.ylabel(sel)
+		pl.show()
 
 	def plot_sse(self,sel='pd',niter=None) : 
 		""" Plot the sse values """
