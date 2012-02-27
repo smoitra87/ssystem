@@ -14,7 +14,7 @@ class ModifierChou2006(object) :
 		# List of mods to be applied 
 		mod_list1 = [self.modNone,self.mod1,self.mod2,self.mod3,\
 		self.mod4]
-		mod_list2 = [self.mod4]
+		mod_list2 = [self.mod1]
 
 		self.mods = mod_list2
 				
@@ -49,6 +49,18 @@ class ModifierChou2006(object) :
 	def mod4(self,ss) : 
 		""" Ask algo to run under full info for eqn1 only """
 		ss.exptype = "fullinfo"
+		ss.equations = [1]
+		return ss
+
+	def mod5(self,ss) :
+		""" Ask algo to run under full info for eqn 2 only """
+		ss.exptype = "fullinfo"
+		ss.equations = [2]
+		return ss
+
+	def mod6(self,ss) : 
+		""" Ask algo torun under partial info for eqn 1 only """
+		ss.exptype = "partialinfo"
 		ss.equations = [1]
 		return ss
 
