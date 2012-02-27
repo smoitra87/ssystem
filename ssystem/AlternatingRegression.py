@@ -718,7 +718,7 @@ Similarly for Ld
 			X_d = [np.log(prof.var[:,reg-1]) for reg in reg_d ]
 			
 			Lp = np.vstack((Lp,np.array(X_p))).T
-			Ld = np.vstack((Ld,np.array(X_d))).T
+			Ld = np.vstack((Ld,np.array(X_d))).T			
 
 			# Calculate Cp
 			Cp = np.dot(LA.inv(np.dot(Lp.T,Lp)),Lp.T)

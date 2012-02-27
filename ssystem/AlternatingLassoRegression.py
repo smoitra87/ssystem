@@ -31,7 +31,11 @@ from AlternatingRegression import ARSolver
 
 class ALRSolver(AR.ARSolver) :
 	""" The ALR class is a variant of AR"""
-	def __init__(self) : 
+	def __init__(self,_ss_dict) : 
+		super(ALRSolver,self).__init__(_ss_dict)
+
+	def _lasso(self) : 
+		""" Makes the lasso call """
 		pass
 
 
@@ -44,7 +48,6 @@ def _exp_splayer(ss) :
 		yield ss_copy
 
 
-
 if __name__ == '__main__' :  
 	pman = ParserManager()
 	for ii,ss in enumerate(pman.get_gen_chou2006()) :
@@ -53,8 +56,8 @@ if __name__ == '__main__' :
 		for expid,ss_exp in enumerate(_exp_splayer(ss)) : 
 			print("Running ss: %s mod: %d exp: %d"% 
 				(ss.name,ii,expid))	
-			ar = ARSolver(ss_exp) 
+			alr = ALRSolver(ss_exp) 
 			#result_exp = ar.solve(maxiter=1000,tol=10e-6)
-			result_exp = ar.solve()
+			result_exp = alr.solve()
 
 	
