@@ -37,6 +37,7 @@ to enforce constraints and good behavior of algorithm
 		""" Init the AR solver""" 
 		self.ss = ss
 		self.logger = logging.getLogger('ss.ar')
+		self.regfunc = self._least_squares
 		
 		# Run preprocessing steps
 		self._preprocessor()
@@ -568,16 +569,20 @@ Run phase1  :
 					
 		
 		yd = np.log(yd_) 
-		bp = np.dot(Cp,yd)
+		bp = self.regfunc(Cp,yd)
+		#bp = np.dot(Cp,yd)
 	
 		# Calculate ssep
 		ssep = self._core_calc_sse(yd,Lp,bp)
 		# DEBUG
-		#util.plot_pair(yd,np.dot(Lp,bp),labels=['yd','Lp*bp'])
-
-			
-			
+		#util.plot_pair(yd,np.dot(Lp,bp),labels=['yd','Lp*bp'])			
 		return retcode,bp,ssep	
+
+	def _least_squares(self,C,y) :
+		""" Simple linear regression to calc bp """
+		b = np.dot(C,y)
+		return b	
+
 
 	def _core_calc_sse(self,y,L,b)  : 
 		""" Calculates SSE """
@@ -618,7 +623,8 @@ Run phase2  :
 					
 		
 		yp = np.log(yp_) 
-		bd = np.dot(Cd,yp)
+		bd = self.regfunc(Cd,yp)
+		#bd = np.dot(Cd,yp)
 
 		# Calculate ssed
 		ssed = self._core_calc_sse(yp,Ld,bd)
@@ -862,7 +868,7 @@ if __name__ == '__main__' :
 			print("Running ss: %s mod: %d exp: %d"% 
 				(ss.name,ii,expid))	
 			ar = ARSolver(ss_exp) 
-			result_exp = ar.solve(maxiter=1000,tol=10e-6)
-			#result_exp = ar.solve()
+			#result_exp = ar.solve(maxiter=1000,tol=10e-6)
+			result_exp = ar.solve()
 
 	
