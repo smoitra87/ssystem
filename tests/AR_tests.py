@@ -342,10 +342,23 @@ class TestARSolverChou2006(object) :
 
 
 	def test_fullinfo1(self) : 
-		""" Put all together and test """	
+		""" test eqn 1 under full info """	
 		ss = Chou2006()
 		ss.exptype = "fullinfo"
 		ss.equations = [1]
 		ar = ARSolver(ss)
 		ar.solve(maxiter=10000,tol=10e-6)
-			
+		assert len(ar.all_exp_art) == 1
+		assert len(ar.all_exp_art[0]['eqns']) == 1
+		art = ar.all_exp_art[0]['eqns'][0]			
+		sol =  	{'alpha': 11.177018643003306,
+		 'beta': 8.7027543289527056,
+		 'g': np.array([-1.0236953]),
+		 'h': np.array([ 0.62268492])}
+		assert np.allclose(sol['alpha'],art.params['alpha'],atol=1)	
+		assert np.allclose(sol['beta'],art.params['beta'],atol=1.5)	
+		assert np.allclose(sol['g'],art.params['g'],atol=0.5)	
+		assert np.allclose(sol['h'],art.params['h'],atol=0.5)	
+
+
+		#assert_equal_dict(art.params,sol)

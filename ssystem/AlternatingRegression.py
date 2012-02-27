@@ -314,13 +314,18 @@ structure:
 		""" Runs the core routine """
 		logging.debug('Beginning AR solver')	
 		
-	
-		# Execute the AR core
-		for exp in ss.experiments : 
-				self.art = ARTracker()
-				self._core(exp)
+		# List of trackers for all experiments
+		self.all_exp_art = []	
 
-		# Run post processing steps
+		# Execute the AR core
+		for expid,exp in enumerate(self.ss.experiments) : 
+				self.exp_art = {} # AR tracker for a single experiments
+				self.exp_art['id'] = expid+1
+				self.exp_art['eqns'] = []
+				self._core(exp)
+				self.all_exp_art.append(self.exp_art)
+
+		#Run post processing steps
 		self._postprocessor()
 	
 
@@ -344,6 +349,7 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 		# Set Loop params
 		
 		for eqnid,eqn in enumerate(self.equations) :
+			self.art = ARTracker()
 			Cp = cp_list[eqnid]
 			Cd = cd_list[eqnid]	
 			Lp = lp_list[eqnid]			
@@ -406,6 +412,14 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 	
 				# For debug only
 				#self.art.continueLoop = False
+
+			# store the alpha and the beta values
+			self.art.params['alpha'] = np.exp(bp[0])
+			self.art.params['beta'] = np.exp(bd[0])
+			self.art.params['g'] = bp[1:]
+			self.art.params['h'] = bd[1:]
+			self.exp_art['eqns'].append(self.art)
+
 			if(self.art.converged == True ) :
 				self.logger.info("Convergence Succeeded..!")
 				self.logger.debug("ssep=%f,ssed=%f,sse=%f"%\
@@ -414,7 +428,7 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 				self.logger.debug("g=%r"%(bp[1:]))
 				self.logger.debug("beta=%r"%(np.exp(bd[0])))
 				self.logger.debug("h=%r"%(bd[1:]))
-				util.plot_pair(slopes,prod-degrad,['true','estimate'])
+				#util.plot_pair(slopes,prod-degrad,['true','estimate'])
 			else : 
 				self.logger.info("Convergence Failed..!")
 				self.logger.debug("maxiter_exceeded ? %r"%\
@@ -425,7 +439,8 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 				self.logger.debug("g=%r"%(bp[1:]))
 				self.logger.debug("beta=%r"%(np.exp(bd[0])))
 				self.logger.debug("h=%r"%(bd[1:]))
-	
+				#util.plot_pair(slopes,prod-degrad,['true','estimate'])
+
 
 
 	def _core_monitor(self,bx,eqnid,eqn,phase) : 
@@ -521,7 +536,7 @@ Run phase1  :
 
 		# If yd_ <= 0 . Try to solve it by fixing beta 
 		while (yd_ <= 0.0).any() and \
-		np.exp(bd[0])< ar.modelspace['beta'][eqn-1][1] :
+		np.exp(bd[0])< self.modelspace['beta'][eqn-1][1] :
 
 			self.logger.debug(\
 			"Found complex pain in phase 1. Dealing with it..")
@@ -571,7 +586,7 @@ Run phase2  :
 
 		# If yp_ <= 0 . Try to solve it by fixing alpha 
 		while (yp_ <= 0.0).any() and \
-		np.exp(bp[0])< ar.modelspace['alpha'][eqn-1][1] :
+		np.exp(bp[0])< self.modelspace['alpha'][eqn-1][1] :
 
 			self.logger.debug(\
 			"Found complex pain in phase2. Dealing with it..")
@@ -711,7 +726,7 @@ Contains values for tracking convergence, maxiter, tolerance
 		self.ssed = []
 		self.rc1 = []
 		self.rc2 = []
-		self.params = None # Contains params from iterations
+		self.params = {} # Contains params from iterations
 		self.converged = False
 		self.maxiter_exceeded = False
 		self.save_trace = False
