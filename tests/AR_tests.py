@@ -341,6 +341,11 @@ class TestARSolverChou2006(object) :
 		pass
 
 
-	def test_core(self) : 
+	def test_fullinfo1(self) : 
 		""" Put all together and test """	
-		pass
+		ss = Chou2006()
+		ss.exptype = "fullinfo"
+		ss.equations = [1]
+		ar = ARSolver(ss)
+		ar.solve(maxiter=10000,tol=10e-6)
+			
