@@ -28,15 +28,34 @@ from other_models import Chou2006
 import AlternatingRegression as AR
 from AlternatingRegression import ARSolver
 
+from sklearn.linear_model import Lasso,LassoCV,LarsCV,LassoLars,\
+	LassoLarsCV
+
 
 class ALRSolver(AR.ARSolver) :
 	""" The ALR class is a variant of AR"""
 	def __init__(self,_ss_dict) : 
 		super(ALRSolver,self).__init__(_ss_dict)
+		self.name = "ALR"
+		self.regfunc = self._lasso
 
-	def _lasso(self) : 
-		""" Makes the lasso call """
-		pass
+	def _lasso(self,X,y) : 
+		""" Makes the lasso call 
+			
+		Parameters 
+		----------
+		X : The Lp or Ld matrix
+		y : The yp or yd response vector
+		
+		"""
+		alpha = 10e-7
+		lasso = Lasso(alpha=alpha)
+		lasso_model = lasso.fit(X,y)
+		gh = lasso_model.coef_
+		gh = gh[1:] # Throw out the first coeff since it is intercept
+		ab = lasso_model.intercept_
+		bx = np.concatenate(([ab],gh))
+		return bx
 
 
 def _exp_splayer(ss) : 
@@ -57,7 +76,7 @@ if __name__ == '__main__' :
 			print("Running ss: %s mod: %d exp: %d"% 
 				(ss.name,ii,expid))	
 			alr = ALRSolver(ss_exp) 
-			#result_exp = ar.solve(maxiter=1000,tol=10e-6)
-			result_exp = alr.solve()
+			result_exp = alr.solve(maxiter=10000,tol=10e-6)
+			#result_exp = alr.solve()
 
 	

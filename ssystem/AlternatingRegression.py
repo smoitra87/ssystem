@@ -38,10 +38,19 @@ to enforce constraints and good behavior of algorithm
 		self.ss = ss
 		self.logger = logging.getLogger('ss.ar')
 		self.regfunc = self._least_squares
-		
+		self.name = "AR"		
 		# Run preprocessing steps
 		self._preprocessor()
 		
+	def _regfunc_handler(self,L,C,y) : 
+		""" Selects whether to send L,C depending on AR/ALR """
+		if self.name == "AR" : 
+			return self.regfunc(C,y)
+		elif self.name == "ALR" : 
+			return self.regfunc(L,y)
+		else :
+			self.logger.error("Unknown name %r"%(self.name))
+			sys.exit(1)
 
 	def _parse_initbound(self) : 
 		""" Parse the soft constraints """
@@ -569,7 +578,7 @@ Run phase1  :
 					
 		
 		yd = np.log(yd_) 
-		bp = self.regfunc(Cp,yd)
+		bp = self._regfunc_handler(Lp,Cp,yd)
 		#bp = np.dot(Cp,yd)
 	
 		# Calculate ssep
@@ -623,7 +632,7 @@ Run phase2  :
 					
 		
 		yp = np.log(yp_) 
-		bd = self.regfunc(Cd,yp)
+		bd = self._regfunc_handler(Ld,Cd,yp)
 		#bd = np.dot(Cd,yp)
 
 		# Calculate ssed

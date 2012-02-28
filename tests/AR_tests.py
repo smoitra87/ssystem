@@ -357,10 +357,11 @@ class TestARSolverChou2006(object) :
 		 'beta': 8.7027543289527056,
 		 'g': np.array([-1.0236953]),
 		 'h': np.array([ 0.62268492])}
-		assert np.allclose(sol['alpha'],art.params['alpha'],atol=1)	
-		assert np.allclose(sol['beta'],art.params['beta'],atol=1.5)	
-		assert np.allclose(sol['g'],art.params['g'],atol=0.5)	
-		assert np.allclose(sol['h'],art.params['h'],atol=0.5)	
+		params = art.params[-1]
+		assert np.allclose(sol['alpha'],params['alpha'],atol=1)	
+		assert np.allclose(sol['beta'],params['beta'],atol=1.5)	
+		assert np.allclose(sol['g'],params['g'],atol=0.5)	
+		assert np.allclose(sol['h'],params['h'],atol=0.5)	
 
 	@attr('slow')
 	def test_fullinfo2(self) : 
@@ -372,15 +373,16 @@ class TestARSolverChou2006(object) :
 		ar.solve(maxiter=10000,tol=10e-6)
 		assert len(ar.all_exp_art) == 1
 		assert len(ar.all_exp_art[0]['eqns']) == 1
-		art = ar.all_exp_art[0]['eqns'][0]			
+		art = ar.all_exp_art[0]['eqns'][0]		
 		sol = {'alpha': 7.8801765469678156,
 			 'beta': 2.8893110127454427,
 			 'g': np.array([ 0.51119746]),
 			 'h': np.array([ 0.76771705])}
-		assert np.allclose(sol['alpha'],art.params['alpha'],atol=1)	
-		assert np.allclose(sol['beta'],art.params['beta'],atol=1.5)	
-		assert np.allclose(sol['g'],art.params['g'],atol=0.5)	
-		assert np.allclose(sol['h'],art.params['h'],atol=0.5)	
+		params = art.params[-1]
+		assert np.allclose(sol['alpha'],params['alpha'],atol=1)	
+		assert np.allclose(sol['beta'],params['beta'],atol=1.5)	
+		assert np.allclose(sol['g'],params['g'],atol=0.5)	
+		assert np.allclose(sol['h'],params['h'],atol=0.5)	
 
 		#assert_equal_dict(art.params,sol)
 
