@@ -48,7 +48,7 @@ class ALRSolver(AR.ARSolver) :
 		y : The yp or yd response vector
 		
 		"""
-		alpha = 10e-7
+		alpha = 10e-4
 		lasso = Lasso(alpha=alpha)
 		lasso_model = lasso.fit(X,y)
 		gh = lasso_model.coef_

@@ -390,7 +390,7 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 		# Set Loop params
 		
 		for eqnid,eqn in enumerate(self.equations) :
-			self.art = ARTracker(**kwargs)
+			self.art = ARTracker(ar=self,eqn=eqn,**kwargs)
 			Cp = cp_list[eqnid]
 			Cd = cd_list[eqnid]	
 			Lp = lp_list[eqnid]			
@@ -801,8 +801,10 @@ class ARTracker(object) :
 	""" 
 Contains values for tracking convergence, maxiter, tolerance
 	"""
-	def __init__(self,maxiter=10000,tol=10e-6,**kwargs) : 
+	def __init__(self,ar,eqn,maxiter=10000,tol=10e-6,**kwargs) : 
 		self.maxiter = maxiter
+		self.ar = ar
+		self.eqn = eqn # The eqn which is being tracked
 		self.tol = tol
 		self.continueLoop = True
 		self.loopiter = 0
@@ -870,7 +872,9 @@ Contains values for tracking convergence, maxiter, tolerance
 			self.params.append(_params)
 
 	def plot_params(self,sel='all',niter=None) : 
-		""" Plot all the params """
+		""" Plot all the params 
+
+		"""
 		alpha = np.array([param['alpha'] for param in self.params])
 		beta = np.array([param['beta'] for param in self.params])
 		g = np.array([param['g'] for param in self.params])
@@ -881,14 +885,36 @@ Contains values for tracking convergence, maxiter, tolerance
 			'g' : g,
 			'h' : h
 		}	
-	
+
+		# Plot true params
+		if sel == 'all' : 
+			for key in pdict.keys() : 
+				key_t = self.ar.ss._ss_params[key][self.eqn-1]
+				if type(key_t) is list : 
+					for t in key_t : 
+						pl.axhline(y=t,color="black",linewidth=2,\
+						linestyle="dashed")
+				else : 
+					pl.axhline(y=key_t,color="black",linewidth=2,\
+						linestyle="dashed")
+		else : 
+			key_t = self.ar.ss._ss_params[sel][self.eqn-1]
+			if type(key_t) is list : 
+				for t in key_t : 
+					pl.axhline(y=t,color="black",linewidth=2,\
+						linestyle="dashed")
+			else : 
+				pl.axhline(y=key_t,color="black",linewidth=2,\
+						linestyle="dashed")
+
+
+		# Plot estimated params
 		if sel == 'all' : 
 			for key in pdict.keys() : 
 				pl.plot(pdict[key],label=key)
-				pl.legend()
+			pl.legend()
 			pl.xlabel("Iteration")
 			pl.ylabel("Params")
-
 		else : 
 			pl.plot(pdict[sel],label=sel)
 			pl.legend()
@@ -896,20 +922,36 @@ Contains values for tracking convergence, maxiter, tolerance
 			pl.ylabel(sel)
 		pl.show()
 
-	def plot_sse(self,sel='pd',niter=None) : 
+	def plot_sse(self,sel='pd',niter=None,log=True) : 
 		""" Plot the sse values """
 		if not niter :
 			niter = len(self.sse)
 
-		if sel == "all" :
-			pl.plot(range(niter),self.sse[:niter],label="SSE")
-			pl.plot(range(niter),self.ssep[:niter],label="SSEp")
-			pl.plot(range(niter),self.ssed[:niter],label="SSEd")
+		if log : 
+			sse = np.log(self.sse)
+			ssep = np.log(self.ssep) 
+			ssed = np.log(self.ssed)
 		else : 
-			pl.plot(range(niter),self.ssep[:niter],label="SSEp")
-			pl.plot(range(niter),self.ssed[:niter],label="SSEd")
+			sse = self.sse
+			ssep = self.ssep
+			ssed = self.ssed		
 
-		pl.legend(loc="upper left")
+		if sel == "all" :
+			pl.plot(range(niter),sse[:niter],label="SSE")
+			pl.plot(range(niter),ssep[:niter],label="SSEp")
+			pl.plot(range(niter),ssed[:niter],label="SSEd")
+		else : 
+			pl.plot(range(niter),ssep[:niter],label="SSEp")
+			pl.plot(range(niter),ssed[:niter],label="SSEd")
+
+		pl.xlim(-5,niter+5)
+		if log : 
+			pl.ylabel('log SSE')
+		else : 
+			pl.ylabel('SSE')
+		pl.xlabel('niter')		
+
+		pl.legend(loc="upper right")
 		pl.show()
 
 def _exp_splayer(ss) : 
