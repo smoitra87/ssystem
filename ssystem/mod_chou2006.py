@@ -14,9 +14,16 @@ class ModifierChou2006(object) :
 		# List of mods to be applied 
 		mod_list1 = [self.modNone,self.mod1,self.mod2,self.mod3,\
 		self.mod4]
+
+		# No info cases
 		mod_list2 = [self.mod6]
+
+		# Partial info cases
+		mod_list3 = [self.mod8,self.mod2]
+
+		# Full info cases
 		mod_list3 = [self.mod4] # works
-		self.mods = mod_list3
+		self.mods = mod_list2
 		
 				
 
@@ -74,6 +81,18 @@ class ModifierChou2006(object) :
 		mspace.h['defaultLowerBound'] = -10.0
 		mspace.h['defaultUpperBound'] = 10.0
 		return ss
+
+	def mod7(self,ss) : 
+		""" Ask algo to run no info for all equations """
+		ss.exptype = "noinfo"
+		return ss
+
+	def mod8(self,ss) :
+		""" Ask algo to run under full info for eqn 2 only """
+		ss.exptype = "partialinfo"
+		ss.equations = [1]
+		return ss
+
 
 	def modNone(self,ss) : 
 		""" No op """

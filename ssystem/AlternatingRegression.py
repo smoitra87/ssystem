@@ -39,8 +39,10 @@ to enforce constraints and good behavior of algorithm
 		self.logger = logging.getLogger('ss.ar')
 		self.regfunc = self._least_squares
 		self.name = "AR"		
+		self.sseMax = 15.0
 		# Run preprocessing steps
 		self._preprocessor()
+			
 		
 	def _regfunc_handler(self,L,C,y) : 
 		""" Selects whether to send L,C depending on AR/ALR """
@@ -272,6 +274,15 @@ structure:
 	
 		nvars = len(self.ss.variables)		
 
+		self.regressors_true = []
+		for eqn in self.ss.equations : 
+			prod=  self._find_regressors(eqn,'g')
+			degrad = self._find_regressors(eqn,'h')
+			self.regressors_true.append({
+				'prod':prod,
+				'degrad':degrad
+			})
+
 		if self.ss.exptype in ('noinfo','structure') : 
 			prod = range(1,nvars+1)
 			degrad = prod
@@ -306,6 +317,23 @@ structure:
 			logging.error('Did not recognize exptype %s'% \
 			(self.ss.exptype))
 			sys.exit(1)
+
+		# The regressors that are to be artificially fixed at every 
+		# iteration
+		# This is only necessary for the noinfo and partial info case
+		self._regressors_fix = []
+		for eqn in self.ss.equations : 
+			prod=  self._find_regressors(eqn,'g')
+			degrad = self._find_regressors(eqn,'h')
+			prod_all = degrad_all = range(1,nvars+1)
+			prod = list(set(prod_all).difference(prod))
+			degrad = list(set(degrad_all).difference(degrad))
+			self._regressors_fix.append({
+				'prod':prod,
+				'degrad':degrad
+			})
+
+
 
 	def _find_regressors(self,eqn,varname) : 
 		""" Find true regressors from eqn and variable"""
@@ -381,33 +409,37 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 				
 				# phase 1 components
 
-				retcode,bp,ssep = self._core_phase1(
+				retcode1,bp,ssep = self._core_phase1(
 									slopes,Cp,bd,Lp,Ld,eqn)
 
-				if retcode == 2 : 
+				if retcode1 == 2 : 
 					self.art.continueLoop = False
 					self.logger.error(
 					'Terminating eqn%d because of complex pain'%(eqn))
 					break			
 
-		
+				# fix params after phase1	
+				bp = self._fix_params(bp,phase=1,eqnid=eqnid)
 
 				# Monitor and fix bp params if needed	
-				retcode1 = self._core_monitor(bp,eqnid,eqn,phase=1)	
+				#retcode1 = self._core_monitor(bp,eqnid,eqn,phase=1)	
 
 				# phase 2 components
 				
-				retcode,bd,ssed = self._core_phase2(
+				retcode2,bd,ssed = self._core_phase2(
 					slopes,Cd,bp,Lp,Ld,eqn)
 
-				if retcode == 2 : 
+				if retcode2 == 2 : 
 					self.art.continueLoop = False
 					self.logger.error(
 					'Terminating eqn%d because of complex pain'%(eqn))
 					break
 
+				# fix params after phase2
+				bd = self._fix_params(bd,phase=2,eqnid=eqnid)
+
 				# Monitor bd ms 
-				retcode2 = self._core_monitor(bd,eqnid,eqn,phase=2)					
+				#retcode2 = self._core_monitor(bd,eqnid,eqn,phase=2)					
 				# Calculate sse
 				prod = self._core_calc_prod(bp,Lp)
 				degrad = self._core_calc_degrad(bd,Ld)
@@ -421,13 +453,10 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 				self.art.bookkeep()	
 				self.art.check_termination()			
 	
-				# For debug only
-#				self.logger.debug("ssep=%f,ssed=%f,sse=%f"%\
-#					(ssep,ssed,sse))
-#				self.logger.debug("alpha=%r"%(np.exp(bp[0])))
-#				self.logger.debug("g=%r"%(bp[1:]))
-#				self.logger.debug("beta=%r"%(np.exp(bd[0])))
-#				self.logger.debug("h=%r"%(bd[1:]))
+				# Check any obvious SSE inconsistencies
+				if ssep > self.sseMax or ssed > self.sseMax : 
+					self.continueLoop = False
+					break				
 
 			# store the alpha and the beta values
 			# Append AR Trace to Experiment Trace list
@@ -444,6 +473,9 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 			
 			self.exp_art['eqns'].append(self.art)
 
+			if retcode1 == 2 or retcode2 == 2 : 
+				self.logger.info("Premature Failure ! Exiting..")
+				break
 
 			if(self.art.converged == True ) :
 				self.logger.info("Convergence Succeeded..!")
@@ -466,8 +498,30 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 				self.logger.debug("h=%r"%(bd[1:]))
 				#util.plot_pair(slopes,prod-degrad,['true','estimate'])
 
+	def _fix_params(self,bx,phase,eqnid) : 
+		""" Fixes params to zero depending on nature of problem """
+		if self.ss.exptype == 'fullinfo' :
+			return bx
+		elif self.ss.exptype in ('noinfo','partialinfo') :
+			reg_fix = self._regressors_fix[eqnid] 
+			if phase == 1 : 
+				prod_fix = reg_fix['prod']
+				for varid in prod_fix : 
+					bx[varid] = 0.0
+			elif phase == 2 : 			
+				degrad_fix = reg_fix['degrad']
+				for varid in degrad_fix :
+					bx[varid] = 0.0 
+			else : 
+				self.logger.error("Incorrect phase %r"%(phase))
+				sys.exit(1)
+		else :
+			self.logger.error("Unrecognized exptype %s quitting..."%\
+			(self.ss.exptype))
 
+		return bx
 
+	# Depreceated...!!! :-(
 	def _core_monitor(self,bx,eqnid,eqn,phase) : 
 		""" 
 Here bx stands for either bp or bd, depending on which phase called
@@ -513,7 +567,7 @@ if they don't fix them
 				self.logger.debug(
 				'Monitor found violation after phase%d',phase)
 				self.logger.debug(
-				'ab=%r out of mspace=%r'%(ab,ab_mspace))
+				'%s=%r out of mspace=%r'%(var1,ab,ab_mspace))
 				retcode = 1
 				if ab > ab_mspace[1] : 
 					bx[0] = np.log(ab_mspace[1]-util.eps)
@@ -534,8 +588,8 @@ if they don't fix them
 					self.logger.debug(
 				'Monitor found violation after phase%d',phase)
 					self.logger.debug(
-					'g%d=%r out of mspace=%r. Fixing..'%
-					(ii+1,gh,gh_space))
+					'%s_%d=%r out of mspace=%r. Fixing..'%
+					(var2,ii+1,gh,gh_space))
 					retcode = 1
 					if gh > gh_space[1] : 
 						bx[ii+1] = gh_space[1]-util.eps
@@ -718,7 +772,7 @@ Similarly for Ld
 		for eqnid,eqn in enumerate(self.equations) : 
 			reg_p = self.regressors[eqnid]['prod']
 			reg_d = self.regressors[eqnid]['degrad']
-	
+			
 			Lp = np.ones(prof.n_sample)
 			Ld = np.ones(prof.n_sample)
 		
@@ -877,7 +931,7 @@ if __name__ == '__main__' :
 			print("Running ss: %s mod: %d exp: %d"% 
 				(ss.name,ii,expid))	
 			ar = ARSolver(ss_exp) 
-			#result_exp = ar.solve(maxiter=1000,tol=10e-6)
-			result_exp = ar.solve()
+			result_exp = ar.solve(maxiter=10000,tol=10e-7)
+			#result_exp = ar.solve()
 
 	
