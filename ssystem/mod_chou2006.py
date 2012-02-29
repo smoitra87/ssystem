@@ -12,18 +12,23 @@ class ModifierChou2006(object) :
 	modified s-systems"""
 	def __init__(self) : 
 		# List of mods to be applied 
-		mod_list1 = [self.modNone,self.mod1,self.mod2,self.mod3,\
-		self.mod4]
+		#mod_list1 = [self.modNone,self.mod1,self.mod2,self.mod3,\
+		#self.mod4]
 
 		# No info cases
-		mod_list2 = [self.mod6]
+		mod_list2 = [self.mod7]
 
 		# Partial info cases
 		mod_list3 = [self.mod8,self.mod2]
 
 		# Full info cases
-		mod_list3 = [self.mod4] # works
-		self.mods = mod_list2
+		mod_list3 = [self.mod4_1] # works
+
+		# all the full info cases seeded at close to some values
+		mod_list4 = [self.mod4_1,self.mod4_2,self.mod4_3,self.mod4_4]
+		#mod_list4 = [self.mod4_3, self.mod4_1,self.mod4_2,self.mod4_4]
+
+		self.mods = mod_list4
 		
 				
 
@@ -54,17 +59,43 @@ class ModifierChou2006(object) :
 		ss.exptype = "structure"
 		return ss
 
-	def mod4(self,ss) : 
+	def mod4_1(self,ss) : 
 		""" Ask algo to run under full info for eqn1 only """
 		ss.exptype = "fullinfo"
 		ss.equations = [1]
 		return ss
 
-	def mod5(self,ss) :
+	def mod4_2(self,ss) :
 		""" Ask algo to run under full info for eqn 2 only """
 		ss.exptype = "fullinfo"
 		ss.equations = [2]
 		return ss
+
+	def mod4_3(self,ss) :
+		""" Ask algo to run under full info for eqn 3 only """
+		ss.exptype = "fullinfo"
+		ss.equations = [3]
+		initsol = ss.constraint.initsol
+		initsol.beta['beta_3'] = 5.0
+		initsol.h['h_3_1'] = 0.1
+		initsol.h['h_3_2'] = 0.1
+		initsol.h['h_3_3'] = 0.6
+		initsol.h['h_3_4'] = 0.23
+		return ss
+
+	def mod4_4(self,ss) :
+		""" Ask algo to run under full info for eqn 4 only """
+		ss.exptype = "fullinfo"
+		ss.equations = [4]
+		initsol = ss.constraint.initsol
+		initsol.beta['beta_4'] = 6.1
+		initsol.h['h_4_1'] = 0.01
+		initsol.h['h_4_2'] = 0.1
+		initsol.h['h_4_3'] = 0.1
+		initsol.h['h_4_4'] = 0.79
+
+		return ss
+
 
 	def mod6(self,ss) : 
 		""" Ask algo torun under no info for eqn 1 only """
@@ -73,13 +104,6 @@ class ModifierChou2006(object) :
 		initsol = ss.constraint.initsol
 		initsol.beta['defaultInitialValue'] = 5.0
 		initsol.h['defaultInitialValue'] = 1.0
-		mspace = ss.constraint.modelspace
-		mspace.alpha['defaultUpperBound'] = 50.0
-		mspace.beta['defaultUpperBound'] = 50.0
-		mspace.g['defaultLowerBound'] = -10.0
-		mspace.g['defaultUpperBound'] = 10.0
-		mspace.h['defaultLowerBound'] = -10.0
-		mspace.h['defaultUpperBound'] = 10.0
 		return ss
 
 	def mod7(self,ss) : 

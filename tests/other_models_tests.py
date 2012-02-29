@@ -175,16 +175,16 @@ def gen_initbound() :
 def gen_initsol() :
 	initsol = {
 		'alpha' : {
-			'defaultInitialValue' : 1.0
+			'defaultInitialValue' : 5.0
 		},
 		'beta' : {
-			'defaultInitialValue' : 1.0
+			'defaultInitialValue' : 5.0
 		},
 		'g': {
-			'defaultInitialValue' : 0.0
+			'defaultInitialValue' : 1.0
 		},
 		'h' : {
-			'defaultInitialValue' : 0.0
+			'defaultInitialValue' : 1.0
 		}
 	}
 	return initsol

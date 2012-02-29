@@ -213,17 +213,22 @@ class TestARSolverChou2006(object) :
 		self.ss = Chou2006()
 		self.ss.exptype= "fullinfo"
 		self.ss.equations = [1,3]
-		self.ss.constraint.initsol.beta['beta_1'] = 5.0
+		self.ss.constraint.initsol.beta['beta_1'] = 7.0
 		self.ss.constraint.initsol.h['h_1_1'] = 1.2
 		self.ar = ARSolver(self.ss)
 	
 		(a_list,b_list,g_list,h_list) = self.ar._core_init_params()
 
-		eq_(a_list,[1.0,1.0])
-		eq_(b_list,[5.0,1.0])
+		print a_list
+		print b_list
+		print g_list
+		print h_list
+		#assert False
+		eq_(a_list,[5.0,5.0])
+		eq_(b_list,[7.0,5.0])
 		ass_f = lambda t : eq_(np.allclose(t[0],t[1]),True)
-		map(ass_f,zip(h_list,[np.array([1.2]),np.array([0,0])]))
-		map(ass_f,zip(g_list,[np.array([0]),np.array([0])]))
+		map(ass_f,zip(h_list,[np.array([1.2]),np.array([1.0,1.0])]))
+		map(ass_f,zip(g_list,[np.array([1.0]),np.array([1.0])]))
 
 
 	def test_core_calc_design(self) : 
@@ -385,6 +390,46 @@ class TestARSolverChou2006(object) :
 		assert np.allclose(sol['h'],params['h'],atol=0.5)	
 
 		#assert_equal_dict(art.params,sol)
+
+
+	@attr('mediocre')
+	def test_noinfo1(self) : 
+		""" Run AR eqn 1 under no info """
+		ss = Chou2006()
+		ss.exptype = "noinfo"
+		ss.equations = [1]
+		ar = ARSolver(ss)
+		ar.solve(maxiter=10000,tol=10e-7)
+		assert len(ar.all_exp_art) == 1
+		assert len(ar.all_exp_art[0]['eqns']) == 1
+		art = ar.all_exp_art[0]['eqns'][0]		
+		sol = {'alpha': 12,
+			 'beta': 10,
+			 'g': np.array([ 0,0,-0.8,0]),
+			 'h': np.array([ 0.5,0,0,0])}
+		params = art.params[-1]
+		assert np.allclose(sol['alpha'],params['alpha'],atol=0.5)	
+		assert np.allclose(sol['beta'],params['beta'],atol=0.5)	
+		assert np.allclose(sol['g'],params['g'],atol=0.2)	
+		assert np.allclose(sol['h'],params['h'],atol=0.2)	
+
+	@attr('mediocre')
+	def test_noinfo2(self) : 
+		""" Run AR all equations under no info """
+		ss = Chou2006()
+		ss.exptype = "noinfo"
+		ss.equations = [1]
+		ar = ARSolver(ss)
+		ar.solve(maxiter=10000,tol=10e-7)
+		assert len(ar.all_exp_art) == 1
+		assert len(ar.all_exp_art[0]['eqns']) == 4
+		art = ar.all_exp_art[0]['eqns'][0]		
+		sol = {'alpha': 12,
+			 'beta': 10,
+			 'g': np.array([ 0,0,-0.8,0]),
+			 'h': np.array([ 0.5,0,0,0])}
+
+
 
 	@attr('slow')
 	def test_partialinfo1(self) :

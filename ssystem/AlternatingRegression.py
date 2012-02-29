@@ -615,7 +615,7 @@ Run phase1  :
 
 		# If yd_ <= 0 . Try to solve it by fixing beta 
 		while (yd_ <= 0.0).any() and \
-		np.exp(bd[0])< self.modelspace['beta'][eqn-1][1] :
+		2*np.exp(bd[0])< self.modelspace['beta'][eqn-1][1] :
 
 			self.logger.debug(\
 			"Found complex pain in phase 1. Dealing with it..")
@@ -625,8 +625,17 @@ Run phase1  :
 			degrad = self._core_calc_degrad(bd,Ld)
 			yd_ = slopes+degrad
 
+
+		if retcode == 1: 
+			self.logger.debug("iter=%d,fixed beta=%f"%\
+			(self.art.loopiter,np.exp(bd[0])))
+
 		if (yd_ <= 0.0).any() : 
-			self.logger.error('Could not deal with complex pain')
+			self.logger.error(\
+			'Could not deal with complex pain in phase1')
+			self.logger.debug("iter=%d,beta=%f"%\
+				(self.art.loopiter,np.exp(bd[0])))
+
 			retcode = 2
 			return retcode,None,None
 					
@@ -669,7 +678,7 @@ Run phase2  :
 
 		# If yp_ <= 0 . Try to solve it by fixing alpha 
 		while (yp_ <= 0.0).any() and \
-		np.exp(bp[0])< self.modelspace['alpha'][eqn-1][1] :
+		2*np.exp(bp[0])< self.modelspace['alpha'][eqn-1][1] :
 
 			self.logger.debug(\
 			"Found complex pain in phase2. Dealing with it..")
@@ -680,11 +689,17 @@ Run phase2  :
 			yp_ = prod - slopes
 
 		if (yp_ <= 0.0).any() : 
-			self.logger.error('Could not deal with complex pain')
+			self.logger.error(\
+				'Could not deal with complex pain in phase2')
+			self.logger.debug("iter=%d,alpha=%f"%\
+				(self.art.loopiter,np.exp(bp[0])))
 			retcode = 2
 			return retcode,None,None	
 					
-		
+		if retcode == 1: 
+			self.logger.debug("iter=%d,fixed beta=%f"%\
+			(self.art.loopiter,np.exp(bd[0])))
+	
 		yp = np.log(yp_) 
 		bd = self._regfunc_handler(Ld,Cd,yp)
 		#bd = np.dot(Cd,yp)
@@ -734,14 +749,16 @@ in a list
 			reg_p = self.regressors[eqnid]['prod']
 			reg_d = self.regressors[eqnid]['degrad']
 			h_eqn = self.initsol['h'][eqn-1]
+			g_eqn = self.initsol['g'][eqn-1]
 
-			a_list.append(1.0) # dummy
+
+			a_list.append(self.initsol['alpha'][eqn-1])
 			b_list.append(self.initsol['beta'][eqn-1])
-		
-			g_list.append(np.zeros(len(reg_p)))
-		
+			
+			g_eqn = np.array([g_eqn[reg-1] for reg in reg_p])
 			h_eqn = np.array([h_eqn[reg-1] for reg in reg_d])
 			h_list.append(h_eqn)
+			g_list.append(g_eqn)
 	
 		return (a_list,b_list,g_list,h_list)
 	
@@ -801,7 +818,8 @@ class ARTracker(object) :
 	""" 
 Contains values for tracking convergence, maxiter, tolerance
 	"""
-	def __init__(self,ar,eqn,maxiter=10000,tol=10e-6,**kwargs) : 
+	def __init__(self,ar,eqn,save_trace=False,\
+			maxiter=10000,tol=10e-6,**kwargs) : 
 		self.maxiter = maxiter
 		self.ar = ar
 		self.eqn = eqn # The eqn which is being tracked
@@ -816,7 +834,7 @@ Contains values for tracking convergence, maxiter, tolerance
 		self.params = [] # Contains params from iterations
 		self.converged = False
 		self.maxiter_exceeded = False
-		self.save_trace = True
+		self.save_trace = save_trace
 
 	def bookkeep(self) : 
 		""" Perform bookkeeping operations for AR algo"""
@@ -972,8 +990,10 @@ if __name__ == '__main__' :
 		for expid,ss_exp in enumerate(_exp_splayer(ss)) : 
 			print("Running ss: %s mod: %d exp: %d"% 
 				(ss.name,ii,expid))	
-			ar = ARSolver(ss_exp) 
-			result_exp = ar.solve(maxiter=10000,tol=10e-7)
+			ar = ARSolver(ss_exp)
+			print "----------INITSOL-----------" 
+			print ar.initsol	
+			result_exp = ar.solve(save_trace=False,maxiter=10000,tol=10e-5)
 			#result_exp = ar.solve()
 
 	
