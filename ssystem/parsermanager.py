@@ -16,7 +16,7 @@ BSD License
 
 import cparser
 from base import SSystem
-from utility import dbglevel
+from utility import SSLogger
 import sys,os
 import logging
 from modifiers import *

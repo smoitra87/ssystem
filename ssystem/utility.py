@@ -5,7 +5,6 @@ import logging, sys,os
 import pylab as pl
 
 
-dbglevel = 1
 loglevel = logging.DEBUG
 eps = 10e-7
 

@@ -4,7 +4,7 @@ from nose.tools import *
 from ssystem.base import SSystem, Profile, Experiment, Constraint 
 import numpy.testing as npt
 import numpy as np
-from ssystem.utility import dbglevel, same_dict
+from ssystem.utility import  same_dict
 
 def gen_sample(n) :
 	""" Generate n samples """
@@ -100,9 +100,6 @@ class TestProfile(object) :
 		p = self.prof
 		npt.assert_almost_equal(p.slopes,np.array(
 			[[1,2,3,4,5]]*4),decimal=2)
-		if(dbglevel > 2) : 
-			print "slope shape", self.prof.slopes.shape
-			self.prof.plot_profile()
 	
 	def set_profile(self,_prof) :
 		self.prof = _prof

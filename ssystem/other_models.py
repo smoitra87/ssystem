@@ -4,7 +4,7 @@ from base import SSystem, Experiment, Profile
 import numpy as np
 import pylab as pl
 from scipy.integrate import ode
-from utility import dbglevel, loglevel
+from utility import loglevel
 import logging
 
 logger = logging.getLogger('ss.oth')
@@ -162,7 +162,7 @@ class Chou2006(SSystem):
 		_y = np.array(y)
 		_slope = np.array(slope)
 
-		if(dbglevel > 2) :
+		if(loglevel <= logging.DEBUG-1) :
 			ax = pl.gca()
 			ax.set_color_cycle(['r','b','g','c'])
 			pl.plot(t,y,'.')

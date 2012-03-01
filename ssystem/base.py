@@ -9,7 +9,7 @@ BSD License
 
 import numpy as np
 import pylab as pl
-from utility import dbglevel, calc_slope
+from utility import  calc_slope
 from scipy import interpolate
 import pdb, sys
 import logging
@@ -106,8 +106,6 @@ class Profile(object) :
 			arrow_scale = 40.0
 			dx = (self.time[-1]-self.time[0])/arrow_scale;
 			dy = self.slopes.T * dx  # transpose operation here
-			if(dbglevel > 2) : 
-				print "slopes shape", self.slopes.shape
 			for ii in range(self.n_sample) : 
 				t = self.time[ii]
 				X = self.var[ii,:]
