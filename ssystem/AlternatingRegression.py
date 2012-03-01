@@ -37,7 +37,8 @@ to enforce constraints and good behavior of algorithm
 		self.ss = ss
 		self.logger = logging.getLogger('ss.ar')
 		self.regfunc = self._least_squares
-		self.name = "AR"		
+		self.name = "AR"	
+		self.exptype = ss.exptype	
 		self._IARTracker = ARTracker
 		# Run preprocessing steps
 		self._preprocessor()
@@ -150,33 +151,17 @@ to enforce constraints and good behavior of algorithm
 The following are the constraint concepts :-
 
 Modelspace : Basically whatever is given in the S-system.
-hardspace : A property of the algorithm which is used for 
-catching crazy growing values
-softspace  : Initially set to half modelspace and then adjusted to go
- up to modelspace
 
 fullinfo:
     Regressors are not included
-    Modelspace is enforced
-    modelspace may or may not be suitably modified to encode up/down 
-	regulation (+ve,-ve)
-    Lenient modelspace is enforced as well
 
 partialinfo:
     Union of prod degrad regressors
-    Modelspace is enforced
-    modelspace may or may not be suitably modified to encode up/down
-	 regulation (+ve,-ve)
-    Lenient modelspace enforced as well
 
 noinfo:
     All regressors
-    Modelspace is enforced
-    modelspace may or may not be suitably modified to encode up/down 
-	regulation (+ve,-ve)
-    Lenient modelspace enforced as well
-    
-structure:
+   
+structure: --- Not implemented yet
     All regressors
     Lenient modelspace enforced 
 
