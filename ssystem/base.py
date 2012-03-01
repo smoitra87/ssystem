@@ -37,6 +37,14 @@ class SSystem(object) :
 		self.constraint = Constraint(modelspace,initbound,initsol)
 		self.exptype = 'noinfo'
 		self.equations = range(1,len(self.variables)+1)
+	def __deepcopy__(self,memo=None) : 
+		""" Make a deepcopy"""
+		copy_self = copy.copy(self)	
+		attr_list =  set(self.__dict__.keys()).difference(['logger'])
+		for attr in attr_list: 
+			copy_self.__setattr__(attr,copy.deepcopy(\
+				self.__getattribute__(attr)))
+		return copy_self
 
 	def set_params(self,**args) :
 		pass
@@ -50,13 +58,15 @@ class Experiment(object) :
 		self.name = exp['name']
 		self.datatype = exp['datatype']
 		self.profile = Profile(exp['samples'])
-	def set_params(self,**args) : 
-		pass
+	def __deepcopy__(self,memo=None) : 
+		""" Make a deepcopy"""
+		copy_self = copy.copy(self)	
+		attr_list =  set(self.__dict__.keys()).difference(['logger'])
+		for attr in attr_list: 
+			copy_self.__setattr__(attr,copy.deepcopy(\
+				self.__getattribute__(attr)))
+		return copy_self
 
-class Equation(object) :
-	""" The equation class """
-	def __init__(self) : 
-		self.isdefined = False;
 	def set_params(self,**args) : 
 		pass
 
@@ -71,6 +81,14 @@ class Profile(object) :
 		self.logger.debug('Calculating slopes')
 		self.slopes,self.tcks = calc_slope(self)
 		self.n_sample, self.n_var = self.var.shape
+	def __deepcopy__(self,memo=None) : 
+		""" Make a deepcopy"""
+		copy_self = copy.copy(self)	
+		attr_list =  set(self.__dict__.keys()).difference(['logger'])
+		for attr in attr_list: 
+			copy_self.__setattr__(attr,copy.deepcopy(\
+				self.__getattribute__(attr)))
+		return copy_self
 	def set_params(self,**args) :
 		pass
 	def plot_profile(self) :
@@ -117,7 +135,8 @@ class Constraint(object) :
 	def __deepcopy__(self,memo=None) : 
 		""" Make a deepcopy"""
 		copy_self = copy.copy(self)	
-		for attr in ('modelspace','initbound','initsol') : 
+		attr_list =  set(self.__dict__.keys()).difference(['logger'])
+		for attr in attr_list: 
 			copy_self.__setattr__(attr,copy.deepcopy(\
 				self.__getattribute__(attr)))
 		return copy_self
@@ -136,9 +155,10 @@ class ModelSpace(object) :
 		self.g = modelspace['g']
 		self.h = modelspace['h']
 	def __deepcopy__(self,memo=None) : 
-		""" Make a deepcopy """
+		""" Make a deepcopy"""
 		copy_self = copy.copy(self)	
-		for attr in ('alpha','beta','g','h') : 
+		attr_list =  set(self.__dict__.keys()).difference(['logger'])
+		for attr in attr_list: 
 			copy_self.__setattr__(attr,copy.deepcopy(\
 				self.__getattribute__(attr)))
 		return copy_self
@@ -155,9 +175,10 @@ class InitBound(object) :
 		self.g = initbound['g']
 		self.h = initbound['h']
 	def __deepcopy__(self,memo=None) : 
-		""" Make a deepcopy """
+		""" Make a deepcopy"""
 		copy_self = copy.copy(self)	
-		for attr in ('alpha','beta','g','h') : 
+		attr_list =  set(self.__dict__.keys()).difference(['logger'])
+		for attr in attr_list: 
 			copy_self.__setattr__(attr,copy.deepcopy(\
 				self.__getattribute__(attr)))
 		return copy_self
@@ -175,9 +196,10 @@ class InitSol(object) :
 		self.h = initsol['h']
 
 	def __deepcopy__(self,memo=None) : 
-		""" Make a deepcopy of Initsol """
+		""" Make a deepcopy"""
 		copy_self = copy.copy(self)	
-		for attr in ('alpha','beta','g','h') : 
+		attr_list =  set(self.__dict__.keys()).difference(['logger'])
+		for attr in attr_list: 
 			copy_self.__setattr__(attr,copy.deepcopy(\
 				self.__getattribute__(attr)))
 		return copy_self
