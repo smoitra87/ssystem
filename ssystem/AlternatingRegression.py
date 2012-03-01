@@ -38,6 +38,7 @@ to enforce constraints and good behavior of algorithm
 		self.logger = logging.getLogger('ss.ar')
 		self.regfunc = self._least_squares
 		self.name = "AR"		
+		self._IARTracker = ARTracker
 		self.sseMax = 15.0
 		# Run preprocessing steps
 		self._preprocessor()
@@ -397,7 +398,7 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 		# Set Loop params
 		
 		for eqnid,eqn in enumerate(self.equations) :
-			self.art = ARTracker(ar=self,eqn=eqn,**kwargs)
+			self.art = self._IARTracker(ar=self,eqn=eqn,**kwargs)
 			Cp = cp_list[eqnid]
 			Cd = cd_list[eqnid]	
 			Lp = lp_list[eqnid]			

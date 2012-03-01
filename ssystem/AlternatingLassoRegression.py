@@ -26,7 +26,7 @@ import pdb
 from nose.tools import eq_
 from other_models import Chou2006
 import AlternatingRegression as AR
-from AlternatingRegression import ARSolver
+from AlternatingRegression import ARSolver, ARTracker
 
 from sklearn.linear_model import Lasso,LassoCV,LarsCV,LassoLars,\
 	LassoLarsCV
@@ -39,6 +39,7 @@ class ALRSolver(AR.ARSolver) :
 		self.name = "ALR"
 		self.regfunc = self._lasso
 		self.l1penalty = 0.0
+		self._IARTracker = ALRTracker
 
 	def _Iregfunc_handler(self,L,C,y) : 
 		""" Selects whether to send L,C depending on AR/ALR """
@@ -77,6 +78,14 @@ def _exp_splayer(ss) :
 		ss_copy.experiments = [exp]
 		yield ss_copy
 
+
+class ALRTracker(ARTracker) : 
+	""" Tracker for ALR class """
+	def __init__(self,ar,eqn,save_trace=False,\
+		maxiter=10000,tol=10e-6,**kwargs) : 
+		super(ALRTracker,self).__init__(ar,eqn,save_trace,\
+			maxiter,tol,**kwargs) 
+		
 
 if __name__ == '__main__' :  
 	pman = ParserManager()
