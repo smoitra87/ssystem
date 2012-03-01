@@ -144,54 +144,6 @@ to enforce constraints and good behavior of algorithm
 			%(varname))
 			sys.exit(1)
 
-
-	def _parse_softspace(self) :
-		""" Compute the soft constraint space 
-			Current strategy is to set it to 50% of hard constraint 
-			limits
-		"""
-		self.softspace = {}
-		
-		for varname in ['alpha','beta','g','h'] : 
-			self._parse_softspace_var(varname)
-	
-	def _parse_softspace_var(self,varname) : 
-		""" Sets the values of alpha, beta, g and h from modelspace
-			values
-		"""
-		modelspace = self.modelspace
-
-		if varname in ('alpha','beta') : 
-			vspace = modelspace[varname]
-			vlist = []
-			for v in vspace : 				
-				if not type(v) is tuple : 
-					vlist.append(v)
-				else : 
-					vlist.append((v[0]*0.5,v[1]*0.5))
-			self.softspace[varname] = vlist
-				
-		elif varname in ('g','h') :
-			vspace = modelspace[varname]
-			vlist = []
-			for vrow in vspace : 
-				vlist2 = []
-				for v in vrow : 				
-					if not type(v) is tuple : 
-						vlist2.append(v)
-					else : 
-						vlist2.append((v[0]*0.5,v[1]*0.5))
-				vlist.append(vlist2)
-			self.softspace[varname] = vlist
-						
-		else :
-			logging.error("Unrecognized varname %s quitting.." \
-			%(varname))
-			sys.exit(1)
-
-		
-		
-
 	def	_preprocessor(self) :  
 		""" Run preprocessing on ss to make compatible with exp type
 
@@ -234,25 +186,10 @@ structure:
 		# Parse entries from ss class
 		self._parse_initsol()
 		self._parse_modelspace()
-		self._parse_softspace()
 		self._parse_initbound()
 		
 		# Set regressors according to exptype
 		self._set_regressors()
-
-		# Deal with exptype ??
-		if self.ss.exptype == 'fullinfo' :
-			pass
-		elif self.ss.exptype == 'partialinfo' : 
-			pass
-		elif self.ss.exptype == 'noinfo' : 
-			pass
-		elif self.ss.exptype == 'structure' :
-			pass
-		else : 
-			logging.error('Did not recognize exptype %s'% \
-			(self.ss.exptype))
-			sys.exit(1)
 
 		# Deal with equations
 		self.equations = self.ss.equations
