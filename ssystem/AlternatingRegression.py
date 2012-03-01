@@ -179,15 +179,6 @@ structure: --- Not implemented yet
 		# Deal with equations
 		self.equations = self.ss.equations
 
-		# Set hard constraints - Constraints to catch crazily growing 
-		# values, set by algorithm
-		self.hardspace = {
-		'alpha' : (0,100),
-		'beta' : (0,100),
-		'g' : (-10,-10),
-		'h' : (-10,-10)
-		}
-
 		# Deal with noisy data ??
 
 	def _set_regressors(self) : 
