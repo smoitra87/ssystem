@@ -991,8 +991,10 @@ if __name__ == '__main__' :
 			print("Running ss: %s mod: %d exp: %d"% 
 				(ss.name,ii,expid))	
 			ar = ARSolver(ss_exp)
-			print "----------INITSOL-----------" 
+			print "----------AR INITSOL-----------" 
 			print ar.initsol	
+			print "----------SS INITSOL-----------"
+			print ss_exp.constraint.initsol.__dict__
 			result_exp = ar.solve(save_trace=False,maxiter=10000,tol=10e-5)
 			#result_exp = ar.solve()
 

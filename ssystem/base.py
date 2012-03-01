@@ -14,6 +14,8 @@ from scipy import interpolate
 import pdb, sys
 import logging
 from utility import loglevel, SSLogger
+import copy
+
 
 logger = logging.getLogger('ss.base')
 
@@ -112,6 +114,14 @@ class Constraint(object) :
 		self.modelspace = ModelSpace(modelspace)
 		self.initbound = InitBound(initbound)
 		self.initsol = InitSol(initsol)
+	def __deepcopy__(self,memo=None) : 
+		""" Make a deepcopy"""
+		copy_self = copy.copy(self)	
+		for attr in ('modelspace','initbound','initsol') : 
+			copy_self.__setattr__(attr,copy.deepcopy(\
+				self.__getattribute__(attr)))
+		return copy_self
+
 	def set_params(self,**args) : 
 		pass
 
@@ -125,6 +135,13 @@ class ModelSpace(object) :
 		self.beta = modelspace['beta'];
 		self.g = modelspace['g']
 		self.h = modelspace['h']
+	def __deepcopy__(self,memo=None) : 
+		""" Make a deepcopy """
+		copy_self = copy.copy(self)	
+		for attr in ('alpha','beta','g','h') : 
+			copy_self.__setattr__(attr,copy.deepcopy(\
+				self.__getattribute__(attr)))
+		return copy_self
 	def set_params(self,**args) : 
 		pass
 
@@ -137,6 +154,13 @@ class InitBound(object) :
 		self.beta = initbound['beta']
 		self.g = initbound['g']
 		self.h = initbound['h']
+	def __deepcopy__(self,memo=None) : 
+		""" Make a deepcopy """
+		copy_self = copy.copy(self)	
+		for attr in ('alpha','beta','g','h') : 
+			copy_self.__setattr__(attr,copy.deepcopy(\
+				self.__getattribute__(attr)))
+		return copy_self
 	def set_params(self,**args) : 
 		pass
 
@@ -149,6 +173,15 @@ class InitSol(object) :
 		self.beta = initsol['beta']
 		self.g = initsol['g']
 		self.h = initsol['h']
+
+	def __deepcopy__(self,memo=None) : 
+		""" Make a deepcopy of Initsol """
+		copy_self = copy.copy(self)	
+		for attr in ('alpha','beta','g','h') : 
+			copy_self.__setattr__(attr,copy.deepcopy(\
+				self.__getattribute__(attr)))
+		return copy_self
+	
 	def set_params(self,**args) : 
 		pass
 
@@ -199,3 +232,7 @@ class ResultsScenario(object) :
 	def _dump_html(self) :
 		""" Dumps a html version of the results"""
 		pass
+
+
+	
+		

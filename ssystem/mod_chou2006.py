@@ -38,7 +38,8 @@ class ModifierChou2006(object) :
 		# Cycle over the mods and make the modifications
 		for mod in self.mods : 
 			# Make shallow copy of ss
-			ss_mod = copy.copy(ss)		
+			ss_mod = copy.copy(ss)
+			ss_mod.constraint = copy.deepcopy(ss.constraint)
 			ss_list.append(mod(ss_mod))
 		return ss_list
 
