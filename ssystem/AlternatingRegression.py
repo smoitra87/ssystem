@@ -475,7 +475,7 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 
 			if retcode1 == 2 or retcode2 == 2 : 
 				self.logger.info("Premature Failure ! Exiting..")
-				break
+				continue
 
 			if(self.art.converged == True ) :
 				self.logger.info("Convergence Succeeded..!")
@@ -697,8 +697,8 @@ Run phase2  :
 			return retcode,None,None	
 					
 		if retcode == 1: 
-			self.logger.debug("iter=%d,fixed beta=%f"%\
-			(self.art.loopiter,np.exp(bd[0])))
+			self.logger.debug("iter=%d,fixed alpha=%f"%\
+			(self.art.loopiter,np.exp(bp[0])))
 	
 		yp = np.log(yp_) 
 		bd = self._regfunc_handler(Ld,Cd,yp)
@@ -991,11 +991,7 @@ if __name__ == '__main__' :
 			print("Running ss: %s mod: %d exp: %d"% 
 				(ss.name,ii,expid))	
 			ar = ARSolver(ss_exp)
-			print "----------AR INITSOL-----------" 
-			print ar.initsol	
-			print "----------SS INITSOL-----------"
-			print ss_exp.constraint.initsol.__dict__
-			result_exp = ar.solve(save_trace=False,maxiter=10000,tol=10e-5)
+			result_exp = ar.solve(save_trace=True,maxiter=10000,tol=10e-5)
 			#result_exp = ar.solve()
 
 	

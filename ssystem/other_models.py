@@ -92,19 +92,19 @@ class Chou2006(SSystem):
 		modelspace = {
 			'alpha': {
 				'defaultLowerBound' : 0.0,
-				'defaultUpperBound' : 15.0
+				'defaultUpperBound' : 50.0
 			},	
 			'beta': {
 				'defaultLowerBound' : 0.0,
-				'defaultUpperBound' : 15.0
+				'defaultUpperBound' : 50.0
 			},
 			'g': {
-				'defaultLowerBound' : -3.0,
-				'defaultUpperBound' : 3.0
+				'defaultLowerBound' : -5.0,
+				'defaultUpperBound' : 5.0
 			},
 			'h': {
-				'defaultLowerBound' : -3.0,
-				'defaultUpperBound' : 3.0
+				'defaultLowerBound' : -5.0,
+				'defaultUpperBound' : 5.0
 			}
 		}
 		return modelspace

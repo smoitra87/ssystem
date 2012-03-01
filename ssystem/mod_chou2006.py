@@ -28,7 +28,10 @@ class ModifierChou2006(object) :
 		mod_list4 = [self.mod4_1,self.mod4_2,self.mod4_3,self.mod4_4]
 		#mod_list4 = [self.mod4_3, self.mod4_1,self.mod4_2,self.mod4_4]
 
-		self.mods = mod_list4
+		# No information case
+		mod_list5 = [self.mod5_1,self.mod5_2,self.mod5_3,self.mod5_4]
+
+		self.mods = mod_list5
 		
 				
 
@@ -98,14 +101,30 @@ class ModifierChou2006(object) :
 		return ss
 
 
-	def mod6(self,ss) : 
+	def mod5_1(self,ss) : 
 		""" Ask algo torun under no info for eqn 1 only """
 		ss.exptype = "noinfo"
 		ss.equations = [1]
-		initsol = ss.constraint.initsol
-		initsol.beta['defaultInitialValue'] = 5.0
-		initsol.h['defaultInitialValue'] = 1.0
 		return ss
+
+	def mod5_2(self,ss) : 
+		""" Ask algo torun under no info for eqn 1 only """
+		ss.exptype = "noinfo"
+		ss.equations = [2]
+		return ss
+
+	def mod5_3(self,ss) : 
+		""" Ask algo torun under no info for eqn 1 only """
+		ss.exptype = "noinfo"
+		ss.equations = [3]
+		return ss
+
+	def mod5_4(self,ss) : 
+		""" Ask algo torun under no info for eqn 1 only """
+		ss.exptype = "noinfo"
+		ss.equations = [4]
+		return ss
+
 
 	def mod7(self,ss) : 
 		""" Ask algo to run no info for all equations """

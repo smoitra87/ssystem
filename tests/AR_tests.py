@@ -418,11 +418,12 @@ class TestARSolverChou2006(object) :
 		""" Run AR all equations under no info """
 		ss = Chou2006()
 		ss.exptype = "noinfo"
-		ss.equations = [1]
+		ss.equations = [1,2,3,4]
 		ar = ARSolver(ss)
 		ar.solve(maxiter=10000,tol=10e-7)
-		assert len(ar.all_exp_art) == 1
-		assert len(ar.all_exp_art[0]['eqns']) == 4
+		eq_(len(ar.all_exp_art),1)
+		print ar.all_exp_art[0]['eqns']
+		eq_(len(ar.all_exp_art[0]['eqns']),4)
 		art = ar.all_exp_art[0]['eqns'][0]		
 		sol = {'alpha': 12,
 			 'beta': 10,
