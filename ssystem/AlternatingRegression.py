@@ -24,7 +24,6 @@ import scipy as sp
 import pylab as pl
 
 import pdb
-from nose.tools import eq_
 from other_models import Chou2006
 
 
