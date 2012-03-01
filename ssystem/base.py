@@ -9,7 +9,7 @@ BSD License
 
 import numpy as np
 import pylab as pl
-from utility import  calc_slope
+from utility import  SSLogger
 from scipy import interpolate
 import pdb, sys
 import logging
@@ -79,8 +79,26 @@ class Profile(object) :
 		self.var = np.array([sample['var'] for sample in samples])
 		self.sdev =np.array( [sample['sdev'] for sample in samples])
 		self.logger.debug('Calculating slopes')
-		self.slopes,self.tcks = calc_slope(self)
+		self.slopes,self.tcks = self._calc_slope()
 		self.n_sample, self.n_var = self.var.shape
+
+	def _calc_slope(self) :
+		""" 
+		Returns the slopes calculated by performing 
+		 * spline fitting
+		"""
+		logger = logging.getLogger('ss.util.spline')
+		logger.debug('Estimating slopes with splines')
+		var = self.var; # 2D array of biochemical self vars
+		n_sample,n_var = var.shape 
+		time = self.time; # vector of time points
+		f1 = lambda(x):interpolate.splrep(time,x)
+		f2 = lambda(tck):interpolate.splev(time,tck,der=1) 
+		tcks = (map(f1,var.T)) # params
+		#Calculate the derivatives
+		derivatives = np.array(map(f2,tcks)).T
+		return derivatives,tcks	
+
 	def __deepcopy__(self,memo=None) : 
 		""" Make a deepcopy"""
 		copy_self = copy.copy(self)	

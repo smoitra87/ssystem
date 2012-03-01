@@ -41,23 +41,6 @@ def get_homedir() :
 basedir = get_basedir()
 logdir = get_logdir()
 
-def calc_slope(profile) :
-	""" 
-	Accepts a profile class object and returns the slopes calculated
-	by performing 
-	 * spline fitting
-	"""
-	logger = logging.getLogger('ss.util.spline')
-	logger.debug('Estimating slopes with splines')
-	var = profile.var; # 2D array of biochemical profile vars
-	n_sample,n_var = var.shape 
-	time = profile.time; # vector of time points
-	f1 = lambda(x):interpolate.splrep(time,x)
-	f2 = lambda(tck):interpolate.splev(time,tck,der=1) 
-	tcks = (map(f1,var.T)) # params
-	#Calculate the derivatives
-	derivatives = np.array(map(f2,tcks)).T
-	return derivatives,tcks	
 
 def within_tuple(tup,x) : 
 	""" Checks whether an element x is within a range specified by 
