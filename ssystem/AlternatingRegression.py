@@ -43,12 +43,13 @@ to enforce constraints and good behavior of algorithm
 		self._preprocessor()
 			
 		
-	def _regfunc_handler(self,L,C,y) : 
-		""" Selects whether to send L,C depending on AR/ALR """
+	def _Iregfunc_handler(self,L,C,y) : 
+		""" Selects whether to send L,C depending on AR/ALR 
+			This acts like an interface that is defined by AR/ALR and 
+			other variants
+		"""
 		if self.name == "AR" : 
 			return self.regfunc(C,y)
-		elif self.name == "ALR" : 
-			return self.regfunc(L,y)
 		else :
 			self.logger.error("Unknown name %r"%(self.name))
 			sys.exit(1)
@@ -647,7 +648,7 @@ Run phase1  :
 					
 		
 		yd = np.log(yd_) 
-		bp = self._regfunc_handler(Lp,Cp,yd)
+		bp = self._Iregfunc_handler(Lp,Cp,yd)
 		#bp = np.dot(Cp,yd)
 	
 		# Calculate ssep
@@ -707,7 +708,7 @@ Run phase2  :
 			(self.art.loopiter,np.exp(bp[0])))
 	
 		yp = np.log(yp_) 
-		bd = self._regfunc_handler(Ld,Cd,yp)
+		bd = self._Iregfunc_handler(Ld,Cd,yp)
 		#bd = np.dot(Cd,yp)
 
 		# Calculate ssed

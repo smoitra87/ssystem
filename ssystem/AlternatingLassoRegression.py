@@ -40,6 +40,13 @@ class ALRSolver(AR.ARSolver) :
 		self.regfunc = self._lasso
 		self.l1penalty = 0.0
 
+	def _Iregfunc_handler(self,L,C,y) : 
+		""" Selects whether to send L,C depending on AR/ALR """
+		if self.name == "ALR" : 
+			return self.regfunc(L,y)
+		else :
+			self.logger.error("Unknown name %r"%(self.name))
+			sys.exit(1)
 
 	def _lasso(self,X,y) : 
 		""" Makes the lasso call 
