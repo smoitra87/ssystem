@@ -39,7 +39,6 @@ to enforce constraints and good behavior of algorithm
 		self.regfunc = self._least_squares
 		self.name = "AR"		
 		self._IARTracker = ARTracker
-		self.sseMax = 15.0
 		# Run preprocessing steps
 		self._preprocessor()
 			
@@ -461,10 +460,6 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 				self.art.bookkeep()	
 				self.art.check_termination()			
 	
-				# Check any obvious SSE inconsistencies
-				if ssep > self.sseMax or ssed > self.sseMax : 
-					self.continueLoop = False
-					break				
 
 			# store the alpha and the beta values
 			# Append AR Trace to Experiment Trace list
@@ -843,6 +838,7 @@ Contains values for tracking convergence, maxiter, tolerance
 		self.converged = False
 		self.maxiter_exceeded = False
 		self.save_trace = save_trace
+		self.sseMax = 15
 
 	def bookkeep(self) : 
 		""" Perform bookkeeping operations for AR algo"""
@@ -861,6 +857,10 @@ Contains values for tracking convergence, maxiter, tolerance
 			self.converged = False
 			self.continueLoop = False
 	
+	# Check any obvious SSE inconsistencies
+		if self.ssep[-1] > self.sseMax or self.ssed[-1] > self.sseMax : 
+			self.continueLoop = False							
+
 	def set_SSE(self,ssep,ssed,sse) :
 		""" Set the SSE values for the diff phases"""
 		if self.save_trace :
