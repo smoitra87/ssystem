@@ -38,6 +38,8 @@ class ALRSolver(AR.ARSolver) :
 		super(ALRSolver,self).__init__(_ss_dict)
 		self.name = "ALR"
 		self.regfunc = self._lasso
+		self.l1penalty = 0.0
+
 
 	def _lasso(self,X,y) : 
 		""" Makes the lasso call 
@@ -47,9 +49,11 @@ class ALRSolver(AR.ARSolver) :
 		X : The Lp or Ld matrix
 		y : The yp or yd response vector
 		
+		Here alpha stands for the L1 penalty applied to lasso
+
 		"""
-		alpha = 10e-4
-		lasso = Lasso(alpha=alpha)
+		
+		lasso = Lasso(alpha=self.l1penalty)
 		lasso_model = lasso.fit(X,y)
 		gh = lasso_model.coef_
 		gh = gh[1:] # Throw out the first coeff since it is intercept

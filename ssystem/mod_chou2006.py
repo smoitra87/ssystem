@@ -29,7 +29,8 @@ class ModifierChou2006(object) :
 		#mod_list4 = [self.mod4_3, self.mod4_1,self.mod4_2,self.mod4_4]
 
 		# No information case
-		mod_list5 = [self.mod5_1,self.mod5_2,self.mod5_3,self.mod5_4]
+		#mod_list5 = [self.mod5_1,self.mod5_2,self.mod5_3,self.mod5_4]
+		mod_list5 = [self.mod5_1]
 
 		self.mods = mod_list5
 		

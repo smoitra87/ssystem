@@ -379,6 +379,13 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 		"""
 		logging.debug('Beginning AR core')
 
+		# Set the value of L1 penalty 		
+		if self.name == "ALR" and kwargs.has_key('l1penalty') :
+			self.logger.debug('Setting L1 penalty to %f'%\
+				kwargs['l1penalty'])
+			self.l1penalty = kwargs['l1penalty'] 
+			
+
 		# Get profile from experiment
 		prof = exp.profile	
 		lp_list,ld_list,cp_list,cd_list = self._core_calc_design(prof)
