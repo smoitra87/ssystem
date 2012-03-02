@@ -48,6 +48,7 @@ to enforce constraints and good behavior of algorithm
 		self.all_exp_art = None
 		self.equations = None
 		self._regressors_fix = None
+		self._core_Ikwarg = self._core_ar_kwarg
 
 		# Run preprocessing steps
 		self._preprocessor()
@@ -290,6 +291,10 @@ structure: --- Not implemented yet
 
 		#Run post processing steps
 		self._postprocessor()
+
+	def _core_ar_kwarg(self,**kwargs) : 
+		""" Parses kwargs for core module in ARSolver"""
+		pass
 	
 
 	def _core(self,exp,**kwargs) : 
@@ -300,13 +305,9 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 
 		"""
 		logging.debug('Beginning AR core')
-
-		# Set the value of L1 penalty 		
-		if self.name == "ALR" and kwargs.has_key('l1penalty') :
-			self.logger.debug('Setting L1 penalty to %f'%\
-				kwargs['l1penalty'])
-			self.l1penalty = kwargs['l1penalty'] 
-			
+	
+		# Parse the keyword args that core needs
+		self._core_Ikwarg(**kwargs)
 
 		# Get profile from experiment
 		prof = exp.profile	

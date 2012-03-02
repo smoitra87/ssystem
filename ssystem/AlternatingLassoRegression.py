@@ -40,7 +40,21 @@ class ALRSolver(AR.ARSolver) :
 		self.regfunc = self._lasso
 		self.l1penalty = 0.0
 		self._IARTracker = ALRTracker
+		self._core_Ikwarg = self._core_alr_kwarg
 
+	def _core_alr_kwarg(self,**kwargs) :
+		""" Parses kwargs for the ALRSolver class"""
+		
+		# Set the value of L1 penalty 		
+		if self.name == "ALR" and kwargs.has_key('l1penalty') :
+			self.logger.debug('Setting L1 penalty to %f'%\
+				kwargs['l1penalty'])
+			self.l1penalty = kwargs['l1penalty'] 
+		else : 
+			self.logger.error('Unidentified solver. Quitting'%\
+				(self.name))
+			sys.exit(1)
+	
 	def _Iregfunc_handler(self,L,C,y) : 
 		""" Selects whether to send L,C depending on AR/ALR """
 		if self.name == "ALR" : 
