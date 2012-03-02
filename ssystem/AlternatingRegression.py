@@ -53,7 +53,6 @@ to enforce constraints and good behavior of algorithm
 		# Run preprocessing steps
 		self._preprocessor()
 			
-		
 	def _Iregfunc_handler(self,L,C,y) : 
 		""" Selects whether to send L,C depending on AR/ALR 
 			This acts like an interface that is defined by AR/ALR and 
@@ -64,6 +63,11 @@ to enforce constraints and good behavior of algorithm
 		else :
 			self.logger.error("Unknown name %r"%(self.name))
 			sys.exit(1)
+
+	def _least_squares(self,C,y) :
+		""" Simple linear regression to calc bp """
+		b = np.dot(C,y)
+		return b	
 
 	def _parse_initbound(self) : 
 		""" Parse the soft constraints """
@@ -256,8 +260,6 @@ structure: --- Not implemented yet
 				'degrad':degrad
 			})
 
-
-
 	def _find_regressors(self,eqn,varname) : 
 		""" Find true regressors from eqn and variable"""
 		true_params = self.ss._ss_params
@@ -265,44 +267,10 @@ structure: --- Not implemented yet
 		regressors = [ii+1 for ii,p in enumerate(params) if p!=0 ]		
 		return regressors
 
-	def _postprocessor(self) : 
-		""" Run post processing steps """
-		logging.debug("nning AR post processor")
-		pass
-
-
-	def solve(self,**kwargs) : 
-		""" Runs the core routine """
-		logging.debug('Beginning AR solver')	
-	
-		# Extract kwargs and pass rest to ARTracker
-		
-	
-		# List of trackers for all experiments
-		self.all_exp_art = []	
-
-		# Execute the AR core
-		for expid,exp in enumerate(self.ss.experiments) : 
-				self.exp_art = {} # AR tracker for a single experiments
-				self.exp_art['id'] = expid+1
-				self.exp_art['eqns'] = []
-				self._core(exp,**kwargs)
-				self.all_exp_art.append(self.exp_art)
-
-		#Run post processing steps
-		self._postprocessor()
-
-	def _core_ar_kwarg(self,**kwargs) : 
-		""" Parses kwargs for core module in ARSolver"""
-		pass
-	
-
 	def _core(self,exp,**kwargs) : 
 		"""
 Core routine of the ARSolver class
-
 Note bd_i is [log(beta_i) hi1 .. hip]
-
 		"""
 		logging.debug('Beginning AR core')
 	
@@ -312,7 +280,6 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 		# Get profile from experiment
 		prof = exp.profile	
 		lp_list,ld_list,cp_list,cd_list = self._core_calc_design(prof)
-
 
 		# Set initial solution params
 		a_list,b_list,g_list,h_list = self._core_init_params()
@@ -336,9 +303,7 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 			
 			arp = ARParams(Cp,Cd,Lp,Ld,b,h,g,a,bd,bp,slopes)
 
-
-			while(self.art.continueLoop == True) :
-				
+			while(self.art.continueLoop == True) :				
 				#------------------------------------------------------
 				# PHASE I
 				#-----------------------------------------------------
@@ -352,11 +317,11 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 					break			
 
 				# fix params after phase1	
-				arp.bp = self._fix_params(arp.bp,phase=1,eqnid=eqnid)
+				arp.bp = self._core_fix_params(arp.bp,\
+					phase=1,eqnid=eqnid)
 				
 				# Monitor and fix bp params if needed	
 				#retcode1 = self._core_monitor(bp,eqnid,eqn,phase=1)	
-
 				#------------------------------------------------------
 				# PHASE II
 				#------------------------------------------------------
@@ -370,7 +335,8 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 					break
 
 				# fix params after phase2
-				arp.bd = self._fix_params(arp.bd,phase=2,eqnid=eqnid)
+				arp.bd = self._core_fix_params(arp.bd,\
+					phase=2,eqnid=eqnid)
 
 				# Monitor bd , may be used at a later stage 
 				#retcode2 = self._core_monitor(bd,eqnid,eqn,phase=2)					
@@ -384,7 +350,6 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 				self.art.bookkeep()	
 				self.art.check_termination()			
 	
-
 			# store the alpha and the beta values
 			# Append AR Trace to Experiment Trace list
 			bp,bd = arp.bp,arp.bd
@@ -428,7 +393,84 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 				self.logger.debug("h=%r"%(bd[1:]))
 				#util.plot_pair(slopes,prod-degrad,['true','estimate'])
 
-	def _fix_params(self,bx,phase,eqnid) : 
+	def _core_ar_kwarg(self,**kwargs) : 
+		""" Parses kwargs for core module in ARSolver"""
+		pass
+	
+	def _core_init_params(self) : 
+		""" 
+Initialize the params for b and h from initsol, for all other params 
+set some dummy values. Separate every param equation wise and stick it 
+in a list
+		"""
+		a_list,b_list = [],[]
+		g_list,h_list = [],[]
+		
+		
+		for eqnid,eqn in enumerate(self.equations) : 
+			reg_p = self.regressors[eqnid]['prod']
+			reg_d = self.regressors[eqnid]['degrad']
+			h_eqn = self.initsol['h'][eqn-1]
+			g_eqn = self.initsol['g'][eqn-1]
+
+
+			a_list.append(self.initsol['alpha'][eqn-1])
+			b_list.append(self.initsol['beta'][eqn-1])
+			
+			g_eqn = np.array([g_eqn[reg-1] for reg in reg_p])
+			h_eqn = np.array([h_eqn[reg-1] for reg in reg_d])
+			h_list.append(h_eqn)
+			g_list.append(g_eqn)
+	
+		return (a_list,b_list,g_list,h_list)
+	
+	def _core_calc_design(self,prof) : 
+		""" 
+Calculate design matrices and return list	
+Calculate Lp, Ld, Cp and Cd 
+
+lp_list contains a list of Lp
+Lp= |1 log(X1(t1)) . . log(Xp(t1)) |
+	|1 log(X1(t2))				   |
+	|.		.					   |
+	|.		.					   |
+	|1 log(X1(tn)) . . log(Xp(tn)) |
+
+Here 1..p may depend on what regressors are actually being selected
+according to exptype
+
+Cp = inv(Lp'*Lp)*Lp'
+
+Similarly for Ld
+		 """
+		lp_list,ld_list = [],[]
+		cp_list,cd_list = [],[]
+				
+		for eqnid,eqn in enumerate(self.equations) : 
+			reg_p = self.regressors[eqnid]['prod']
+			reg_d = self.regressors[eqnid]['degrad']
+			
+			Lp = np.ones(prof.n_sample)
+			Ld = np.ones(prof.n_sample)
+		
+			# Get regressor values
+			X_p = [np.log(prof.var[:,reg-1]) for reg in reg_p ]
+			X_d = [np.log(prof.var[:,reg-1]) for reg in reg_d ]
+			
+			Lp = np.vstack((Lp,np.array(X_p))).T
+			Ld = np.vstack((Ld,np.array(X_d))).T			
+
+			# Calculate Cp
+			Cp = np.dot(LA.inv(np.dot(Lp.T,Lp)),Lp.T)
+			Cd = np.dot(LA.inv(np.dot(Ld.T,Ld)),Ld.T)
+			# Append Lp,Ld,Cp and Cd to relevant lists
+			lp_list.append(Lp)
+			ld_list.append(Ld)
+			cp_list.append(Cp)
+			cd_list.append(Cd)			
+		return (lp_list,ld_list,cp_list,cd_list)
+
+	def _core_fix_params(self,bx,phase,eqnid) : 
 		""" Fixes params to zero depending on nature of problem """
 		if self.ss.exptype == 'fullinfo' :
 			return bx
@@ -450,6 +492,180 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 			(self.ss.exptype))
 
 		return bx
+
+	def _core_phase1(self,arp,eqn)  : 
+		""" 
+Run phase1  : 
+	Calculates degrad terms and estimates bp
+		Return codes:
+		0 : Success
+		1 : Complex trouble, but solved
+		2 : Complex trouble, but could not solve
+		"""
+		Cp = arp.Cp
+		slopes = arp.slopes
+		Lp  = arp.Lp
+		Ld = arp.Ld
+		bd = arp.bd
+
+		degrad = self._core_calc_degrad(bd,Ld)
+		yd_ = slopes + degrad
+		retcode = 0 # Assuming success
+
+		# If yd_ <= 0 . Try to solve it by fixing beta 
+		while (yd_ <= 0.0).any() and \
+		2*np.exp(bd[0])< self.modelspace['beta'][eqn-1][1] :
+
+			self.logger.debug(\
+			"Found complex pain in phase 1. Dealing with it..")
+			retcode =  1 # Found complex pain
+			
+			bd[0] += np.log(2) # Mult beta by 2 to fix complex pain
+			degrad = self._core_calc_degrad(bd,Ld)
+			yd_ = slopes+degrad
+
+		if retcode == 1: 
+			self.logger.debug("iter=%d,fixed beta=%f"%\
+			(self.art.loopiter,np.exp(bd[0])))
+
+		if (yd_ <= 0.0).any() : 
+			self.logger.warning(\
+			'Could not deal with complex pain in phase1')
+			self.logger.debug("iter=%d,beta=%f"%\
+				(self.art.loopiter,np.exp(bd[0])))
+
+			retcode = 2
+			return retcode,None,None
+							
+		yd = np.log(yd_) 
+		bp = self._Iregfunc_handler(Lp,Cp,yd)
+		#bp = np.dot(Cp,yd)
+	
+		# Calculate ssep
+		ssep = self._core_calc_sse(yd,Lp,bp)
+		# DEBUG
+		#util.plot_pair(yd,np.dot(Lp,bp),labels=['yd','Lp*bp'])			
+		return retcode,bp,ssep	
+
+	def _core_phase2(self,arp,eqn)  : 
+		""" 
+Run phase2  : 
+	Calculates prod terms and estimates bd
+		Return codes:
+		0 : Success
+		1 : Complex trouble, but solved
+		2 : Complex trouble, but could not solve
+		"""
+		slopes = arp.slopes
+		Cd = arp.Cd
+		Lp = arp.Lp
+		Ld = arp.Ld
+		bp = arp.bp
+
+		prod = self._core_calc_prod(bp,Lp)
+		yp_ =  prod - slopes
+		retcode = 0 # Assuming success
+
+		# If yp_ <= 0 . Try to solve it by fixing alpha 
+		while (yp_ <= 0.0).any() and \
+		2*np.exp(bp[0])< self.modelspace['alpha'][eqn-1][1] :
+
+			self.logger.debug(\
+			"Found complex pain in phase2. Dealing with it..")
+			retcode =  1 # Found complex pain
+			
+			bp[0] += np.log(2) # Mult alpha by 2 to fix complex pain
+			prod = self._core_calc_prod(bp,Lp)
+			yp_ = prod - slopes
+
+		if (yp_ <= 0.0).any() : 
+			self.logger.warning(\
+				'Could not deal with complex pain in phase2')
+			self.logger.debug("iter=%d,alpha=%f"%\
+				(self.art.loopiter,np.exp(bp[0])))
+			retcode = 2
+			return retcode,None,None	
+					
+		if retcode == 1: 
+			self.logger.debug("iter=%d,fixed alpha=%f"%\
+			(self.art.loopiter,np.exp(bp[0])))
+	
+		yp = np.log(yp_) 
+		bd = self._Iregfunc_handler(Ld,Cd,yp)
+		#bd = np.dot(Cd,yp)
+
+		# Calculate ssed
+		ssed = self._core_calc_sse(yp,Ld,bd)
+		#util.plot_pair(yp,np.dot(Ld,bd),labels=['yp','Ld*bd'])
+
+		return retcode,bd,ssed
+
+
+	def _core_calc_degrad(self,bd,Ld) : 
+		""" 
+Calculate the degradation values
+Given bd = [log(b) hi1 hi2 .. hip]
+Ld = Design matrix
+It returns [n_sample x 1] array of degrad values
+	
+		"""
+		degrad = np.dot(Ld,bd) # Do matrix multiplication 
+		degrad = np.exp(degrad) # Exponentiate to convert log to real
+		return degrad
+
+	def _core_calc_prod(self,bp,Lp) : 
+		"""
+Calculate the production values
+Given bp = [log(a) gi1 gi2 .. gip]
+Lp = Design matrix
+It returns [n_sample x 1] array of prod values
+		"""
+		prod = np.dot(Lp,bp)
+		prod = np.exp(prod)
+		return prod
+
+	def _core_calc_sse2(self,arp) : 
+		""" Calculates SSE for overall fit to curve. 
+			The other SSE function calculates for individual ssep/d
+		"""
+		prod = self._core_calc_prod(arp.bp,arp.Lp)
+		degrad = self._core_calc_degrad(arp.bd,arp.Ld)
+		e = arp.slopes - prod + degrad
+		sse = np.dot(e,e)			
+		return sse
+
+	def _core_calc_sse(self,y,L,b)  : 
+		""" Calculates SSE """
+		e = y - np.dot(L,b)
+		sse = np.dot(e,e)
+		return sse
+	
+	def _postprocessor(self) : 
+		""" Run post processing steps """
+		logging.debug("nning AR post processor")
+		pass
+
+	def solve(self,**kwargs) : 
+		""" Runs the core routine """
+		logging.debug('Beginning AR solver')	
+	
+		# List of trackers for all experiments
+		self.all_exp_art = []	
+
+		# Execute the AR core
+		for expid,exp in enumerate(self.ss.experiments) : 
+				self.exp_art = {} # AR tracker for a single experiments
+				self.exp_art['id'] = expid+1
+				self.exp_art['eqns'] = []
+				self._core(exp,**kwargs)
+				self.all_exp_art.append(self.exp_art)
+
+		#Run post processing steps
+		self._postprocessor()
+
+	#-----------------------------------------------------------------
+	# Depreceated Code Section
+	#-----------------------------------------------------------------
 
 	# Depreceated...!!! :-(
 	def _core_monitor(self,bx,eqnid,eqn,phase) : 
@@ -529,242 +745,6 @@ if they don't fix them
 		
 		return retcode				
 
-	def _core_phase1(self,arp,eqn)  : 
-		""" 
-Run phase1  : 
-	Calculates degrad terms and estimates bp
-		Return codes:
-		0 : Success
-		1 : Complex trouble, but solved
-		2 : Complex trouble, but could not solve
-		"""
-		
-		Cp = arp.Cp
-		slopes = arp.slopes
-		Lp  = arp.Lp
-		Ld = arp.Ld
-		bd = arp.bd
-
-
-		degrad = self._core_calc_degrad(bd,Ld)
-		yd_ = slopes + degrad
-		retcode = 0 # Assuming success
-
-		# If yd_ <= 0 . Try to solve it by fixing beta 
-		while (yd_ <= 0.0).any() and \
-		2*np.exp(bd[0])< self.modelspace['beta'][eqn-1][1] :
-
-			self.logger.debug(\
-			"Found complex pain in phase 1. Dealing with it..")
-			retcode =  1 # Found complex pain
-			
-			bd[0] += np.log(2) # Mult beta by 2 to fix complex pain
-			degrad = self._core_calc_degrad(bd,Ld)
-			yd_ = slopes+degrad
-
-
-		if retcode == 1: 
-			self.logger.debug("iter=%d,fixed beta=%f"%\
-			(self.art.loopiter,np.exp(bd[0])))
-
-		if (yd_ <= 0.0).any() : 
-			self.logger.warning(\
-			'Could not deal with complex pain in phase1')
-			self.logger.debug("iter=%d,beta=%f"%\
-				(self.art.loopiter,np.exp(bd[0])))
-
-			retcode = 2
-			return retcode,None,None
-					
-		
-		yd = np.log(yd_) 
-		bp = self._Iregfunc_handler(Lp,Cp,yd)
-		#bp = np.dot(Cp,yd)
-	
-		# Calculate ssep
-		ssep = self._core_calc_sse(yd,Lp,bp)
-		# DEBUG
-		#util.plot_pair(yd,np.dot(Lp,bp),labels=['yd','Lp*bp'])			
-		return retcode,bp,ssep	
-
-	def _least_squares(self,C,y) :
-		""" Simple linear regression to calc bp """
-		b = np.dot(C,y)
-		return b	
-
-	def _core_calc_sse2(self,arp) : 
-		""" Calculates SSE for overall fit to curve. 
-			The other SSE function calculates for individual ssep/d
-		"""
-		prod = self._core_calc_prod(arp.bp,arp.Lp)
-		degrad = self._core_calc_degrad(arp.bd,arp.Ld)
-		e = arp.slopes - prod + degrad
-		sse = np.dot(e,e)			
-		return sse
-
-	def _core_calc_sse(self,y,L,b)  : 
-		""" Calculates SSE """
-		e = y - np.dot(L,b)
-		sse = np.dot(e,e)
-		return sse
-	
-	def _core_phase2(self,arp,eqn)  : 
-		""" 
-Run phase2  : 
-	Calculates prod terms and estimates bd
-		Return codes:
-		0 : Success
-		1 : Complex trouble, but solved
-		2 : Complex trouble, but could not solve
-		"""
-		
-		slopes = arp.slopes
-		Cd = arp.Cd
-		Lp = arp.Lp
-		Ld = arp.Ld
-		bp = arp.bp
-
-		prod = self._core_calc_prod(bp,Lp)
-		yp_ =  prod - slopes
-		retcode = 0 # Assuming success
-
-		# If yp_ <= 0 . Try to solve it by fixing alpha 
-		while (yp_ <= 0.0).any() and \
-		2*np.exp(bp[0])< self.modelspace['alpha'][eqn-1][1] :
-
-			self.logger.debug(\
-			"Found complex pain in phase2. Dealing with it..")
-			retcode =  1 # Found complex pain
-			
-			bp[0] += np.log(2) # Mult alpha by 2 to fix complex pain
-			prod = self._core_calc_prod(bp,Lp)
-			yp_ = prod - slopes
-
-		if (yp_ <= 0.0).any() : 
-			self.logger.warning(\
-				'Could not deal with complex pain in phase2')
-			self.logger.debug("iter=%d,alpha=%f"%\
-				(self.art.loopiter,np.exp(bp[0])))
-			retcode = 2
-			return retcode,None,None	
-					
-		if retcode == 1: 
-			self.logger.debug("iter=%d,fixed alpha=%f"%\
-			(self.art.loopiter,np.exp(bp[0])))
-	
-		yp = np.log(yp_) 
-		bd = self._Iregfunc_handler(Ld,Cd,yp)
-		#bd = np.dot(Cd,yp)
-
-		# Calculate ssed
-		ssed = self._core_calc_sse(yp,Ld,bd)
-		#util.plot_pair(yp,np.dot(Ld,bd),labels=['yp','Ld*bd'])
-
-		return retcode,bd,ssed
-
-
-	def _core_calc_degrad(self,bd,Ld) : 
-		""" 
-Calculate the degradation values
-Given bd = [log(b) hi1 hi2 .. hip]
-Ld = Design matrix
-It returns [n_sample x 1] array of degrad values
-	
-		"""
-		degrad = np.dot(Ld,bd) # Do matrix multiplication 
-		degrad = np.exp(degrad) # Exponentiate to convert log to real
-		return degrad
-
-	def _core_calc_prod(self,bp,Lp) : 
-		"""
-Calculate the production values
-Given bp = [log(a) gi1 gi2 .. gip]
-Lp = Design matrix
-It returns [n_sample x 1] array of prod values
-		"""
-		prod = np.dot(Lp,bp)
-		prod = np.exp(prod)
-		return prod
-
-
-	def _core_init_params(self) : 
-		""" 
-Initialize the params for b and h from initsol, for all other params 
-set some dummy values. Separate every param equation wise and stick it 
-in a list
-		"""
-		a_list,b_list = [],[]
-		g_list,h_list = [],[]
-		
-		
-		for eqnid,eqn in enumerate(self.equations) : 
-			reg_p = self.regressors[eqnid]['prod']
-			reg_d = self.regressors[eqnid]['degrad']
-			h_eqn = self.initsol['h'][eqn-1]
-			g_eqn = self.initsol['g'][eqn-1]
-
-
-			a_list.append(self.initsol['alpha'][eqn-1])
-			b_list.append(self.initsol['beta'][eqn-1])
-			
-			g_eqn = np.array([g_eqn[reg-1] for reg in reg_p])
-			h_eqn = np.array([h_eqn[reg-1] for reg in reg_d])
-			h_list.append(h_eqn)
-			g_list.append(g_eqn)
-	
-		return (a_list,b_list,g_list,h_list)
-	
-	def _core_calc_design(self,prof) : 
-		""" 
-Calculate design matrices and return list	
-Calculate Lp, Ld, Cp and Cd 
-
-lp_list contains a list of Lp
-Lp= |1 log(X1(t1)) . . log(Xp(t1)) |
-	|1 log(X1(t2))				   |
-	|.		.					   |
-	|.		.					   |
-	|1 log(X1(tn)) . . log(Xp(tn)) |
-
-Here 1..p may depend on what regressors are actually being selected
-according to exptype
-
-Cp = inv(Lp'*Lp)*Lp'
-
-Similarly for Ld
-
-		 """
-		lp_list,ld_list = [],[]
-		cp_list,cd_list = [],[]
-		
-		
-		for eqnid,eqn in enumerate(self.equations) : 
-			reg_p = self.regressors[eqnid]['prod']
-			reg_d = self.regressors[eqnid]['degrad']
-			
-			Lp = np.ones(prof.n_sample)
-			Ld = np.ones(prof.n_sample)
-		
-			# Get regressor values
-			X_p = [np.log(prof.var[:,reg-1]) for reg in reg_p ]
-			X_d = [np.log(prof.var[:,reg-1]) for reg in reg_d ]
-			
-			Lp = np.vstack((Lp,np.array(X_p))).T
-			Ld = np.vstack((Ld,np.array(X_d))).T			
-
-			# Calculate Cp
-			Cp = np.dot(LA.inv(np.dot(Lp.T,Lp)),Lp.T)
-			Cd = np.dot(LA.inv(np.dot(Ld.T,Ld)),Ld.T)
-
-
-			# Append Lp,Ld,Cp and Cd to relevant lists
-			lp_list.append(Lp)
-			ld_list.append(Ld)
-			cp_list.append(Cp)
-			cd_list.append(Cd)
-
-			
-		return (lp_list,ld_list,cp_list,cd_list)
 
 class ARTracker(object) : 
 	""" 
