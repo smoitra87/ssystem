@@ -15,6 +15,8 @@ from parsermanager import ParserManager
 from utility import basedir,logdir,within_tuple
 import logging, copy, re, sys, random
 from modifiers import ModifierChou2006
+from FeatureSelector import LassoARFeatSel
+
 
 import utility as util
 
@@ -933,6 +935,15 @@ class ARParams(object) :
 		self.slopes = slopes
 		
 
+class ARFeatLassoSolver(ARSolver) : 
+	""" Lasso Feature Selector for doing AR"""
+	def __init__(self,ss) :
+		""" Init for Lasso Feat Solver""" 
+		self.logger = logging.getLogger("ss.ar.fl")
+		self.logger.debug("Calling Constructor for AR")
+		super(ARFeatLassoSolver,self).__init__(ss)
+
+
 
 if __name__ == '__main__' :  
 	pman = ParserManager()
@@ -942,8 +953,8 @@ if __name__ == '__main__' :
 		for expid,ss_exp in enumerate(_exp_splayer(ss)) : 
 			print("Running ss: %s mod: %d exp: %d"% 
 				(ss.name,ii,expid))	
-			ar = ARSolver(ss_exp)
-			result_exp = ar.solve(save_trace=True,maxiter=10000,tol=10e-5)
+			ar = ARFeatLassoSolver(ss_exp)
+			result_exp = ar.solve(save_trace=False,maxiter=10000,tol=10e-5)
 			#result_exp = ar.solve()
 
 	

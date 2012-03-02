@@ -55,6 +55,13 @@ def same_dict(x,y):
 	n_common = len(set(x.items()) & set(y.items()) )
 	return len(x)==len(y) and n_common==len(x)
 
+def overrides(interface_class) : 
+	""" Returns a decorator """
+	def overrider(func) : 
+		assert(func.__name__ in dir(interface_class))
+		return func
+	return overrider
+
 class SSLogger(object) : 
 	""" Contains Loggers, Handlers and Formatters for SSystem
 Mostly contains static members that can be imported directly without reinitializing"""
