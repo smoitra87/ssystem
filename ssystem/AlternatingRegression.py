@@ -334,13 +334,16 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 			# Note this directly references slopes
 			slopes = exp.profile.slopes[:,eqn-1]
 			
+			arp = ARParams(Cp,Cd,Lp,Ld,b,h,g,a,bd,bp,slopes)
+
 
 			while(self.art.continueLoop == True) :
 				
-				# phase 1 components
+				#------------------------------------------------------
+				# PHASE I
+				#-----------------------------------------------------
 
-				retcode1,bp,ssep = self._core_phase1(
-									slopes,Cp,bd,Lp,Ld,eqn)
+				retcode1,arp.bp,ssep = self._core_phase1(arp,eqn)
 
 				if retcode1 == 2 : 
 					self.art.continueLoop = False
@@ -349,15 +352,16 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 					break			
 
 				# fix params after phase1	
-				bp = self._fix_params(bp,phase=1,eqnid=eqnid)
-
+				arp.bp = self._fix_params(arp.bp,phase=1,eqnid=eqnid)
+				
 				# Monitor and fix bp params if needed	
 				#retcode1 = self._core_monitor(bp,eqnid,eqn,phase=1)	
 
-				# phase 2 components
+				#------------------------------------------------------
+				# PHASE II
+				#------------------------------------------------------
 				
-				retcode2,bd,ssed = self._core_phase2(
-					slopes,Cd,bp,Lp,Ld,eqn)
+				retcode2,arp.bd,ssed = self._core_phase2(arp,eqn)
 
 				if retcode2 == 2 : 
 					self.art.continueLoop = False
@@ -366,19 +370,16 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 					break
 
 				# fix params after phase2
-				bd = self._fix_params(bd,phase=2,eqnid=eqnid)
+				arp.bd = self._fix_params(arp.bd,phase=2,eqnid=eqnid)
 
-				# Monitor bd ms 
+				# Monitor bd , may be used at a later stage 
 				#retcode2 = self._core_monitor(bd,eqnid,eqn,phase=2)					
-				# Calculate sse
-				prod = self._core_calc_prod(bp,Lp)
-				degrad = self._core_calc_degrad(bd,Ld)
-				e = slopes - prod + degrad
-				sse = np.dot(e,e)			
+				# Calculate overall sse for fit to curve
+				sse = self._core_calc_sse2(arp)		
 	
 				# Perform bookkeeping and convergence checks
 				self.art.set_SSE(ssep,ssed,sse)
-				self.art.set_params(bp,bd)
+				self.art.set_params(arp.bp,arp.bd)
 				self.art.set_retcodes(retcode1,retcode2)
 				self.art.bookkeep()	
 				self.art.check_termination()			
@@ -386,6 +387,7 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 
 			# store the alpha and the beta values
 			# Append AR Trace to Experiment Trace list
+			bp,bd = arp.bp,arp.bd
 			if not self.art.save_trace : 
 				if (bp is None) or (bd is None): 
 					_params = None	
@@ -525,7 +527,7 @@ if they don't fix them
 		
 		return retcode				
 
-	def _core_phase1(self,slopes,Cp,bd,Lp,Ld,eqn)  : 
+	def _core_phase1(self,arp,eqn)  : 
 		""" 
 Run phase1  : 
 	Calculates degrad terms and estimates bp
@@ -534,6 +536,13 @@ Run phase1  :
 		1 : Complex trouble, but solved
 		2 : Complex trouble, but could not solve
 		"""
+		
+		Cp = arp.Cp
+		slopes = arp.slopes
+		Lp  = arp.Lp
+		Ld = arp.Ld
+		bd = arp.bd
+
 
 		degrad = self._core_calc_degrad(bd,Ld)
 		yd_ = slopes + degrad
@@ -581,6 +590,15 @@ Run phase1  :
 		b = np.dot(C,y)
 		return b	
 
+	def _core_calc_sse2(self,arp) : 
+		""" Calculates SSE for overall fit to curve. 
+			The other SSE function calculates for individual ssep/d
+		"""
+		prod = self._core_calc_prod(arp.bp,arp.Lp)
+		degrad = self._core_calc_degrad(arp.bd,arp.Ld)
+		e = arp.slopes - prod + degrad
+		sse = np.dot(e,e)			
+		return sse
 
 	def _core_calc_sse(self,y,L,b)  : 
 		""" Calculates SSE """
@@ -588,7 +606,7 @@ Run phase1  :
 		sse = np.dot(e,e)
 		return sse
 	
-	def _core_phase2(self,slopes,Cd,bp,Lp,Ld,eqn)  : 
+	def _core_phase2(self,arp,eqn)  : 
 		""" 
 Run phase2  : 
 	Calculates prod terms and estimates bd
@@ -597,6 +615,12 @@ Run phase2  :
 		1 : Complex trouble, but solved
 		2 : Complex trouble, but could not solve
 		"""
+		
+		slopes = arp.slopes
+		Cd = arp.Cd
+		Lp = arp.Lp
+		Ld = arp.Ld
+		bp = arp.bp
 
 		prod = self._core_calc_prod(bp,Lp)
 		yp_ =  prod - slopes
@@ -911,6 +935,21 @@ def _exp_splayer(ss) :
 		ss_copy.experiments = [exp]
 		yield ss_copy
 
+class ARParams(object) : 
+	""" This object stores the AR params currently in use"""
+	def __init__(self,Cp,Cd,Lp,Ld,b,h,g,a,bd,bp,slopes) : 
+		self.Cp = Cp
+		self.Cd = Cd
+		self.Lp = Lp
+		self.Ld = Ld
+		self.b = b
+		self.h = h
+		self.g = g
+		self.a = a
+		self.bd = bd
+		self.bp = bp
+		self.slopes = slopes
+		
 
 
 if __name__ == '__main__' :  
