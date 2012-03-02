@@ -10,29 +10,23 @@ BSD License
 
 """
 
-from parsermanager import ParserManager
-from utility import basedir,logdir,within_tuple
-import logging, copy, re, sys, random
-from modifiers import ModifierChou2006
-
-import utility as util
+import logging,copy,pdb
 
 import numpy as np
-from numpy import linalg as LA
 import scipy as sp
 import pylab as pl
 
-import pdb
-from nose.tools import eq_
+from modifiers import ModifierChou2006
+import utility as util
+from parsermanager import ParserManager
 from other_models import Chou2006
-import AlternatingRegression as AR
 from AlternatingRegression import ARSolver, ARTracker
 
 from sklearn.linear_model import Lasso,LassoCV,LarsCV,LassoLars,\
 	LassoLarsCV
 
 
-class ALRSolver(AR.ARSolver) :
+class ALRSolver(ARSolver) :
 	""" The ALR class is a variant of AR"""
 	def __init__(self,_ss_dict) : 
 		super(ALRSolver,self).__init__(_ss_dict)
@@ -110,7 +104,7 @@ if __name__ == '__main__' :
 			print("Running ss: %s mod: %d exp: %d"% 
 				(ss.name,ii,expid))	
 			alr = ALRSolver(ss_exp) 
-			result_exp = alr.solve(maxiter=10000,tol=10e-6)
+			result_exp = alr.solve(l1penalty=0.0,maxiter=10000,tol=10e-6)
 			#result_exp = alr.solve()
 
 	
