@@ -40,6 +40,15 @@ to enforce constraints and good behavior of algorithm
 		self.name = "AR"	
 		self.exptype = ss.exptype	
 		self._IARTracker = ARTracker
+		self.regressors = None
+		self.regressors_true = None
+		self.modelspace = None
+		self.art = None
+		self.exp_art = None
+		self.all_exp_art = None
+		self.equations = None
+		self._regressors_fix = None
+
 		# Run preprocessing steps
 		self._preprocessor()
 			
