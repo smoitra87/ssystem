@@ -347,7 +347,7 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 
 				if retcode1 == 2 : 
 					self.art.continueLoop = False
-					self.logger.error(
+					self.logger.warning(
 					'Terminating eqn%d because of complex pain'%(eqn))
 					break			
 
@@ -365,7 +365,7 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 
 				if retcode2 == 2 : 
 					self.art.continueLoop = False
-					self.logger.error(
+					self.logger.warning(
 					'Terminating eqn%d because of complex pain'%(eqn))
 					break
 
@@ -401,10 +401,12 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 			
 			self.exp_art['eqns'].append(self.art)
 
+			# Don't store results if complex pain could not be solved
 			if retcode1 == 2 or retcode2 == 2 : 
-				self.logger.info("Premature Failure ! Exiting..")
+				self.logger.info("Premature Failure ! Skipping equation						..")
 				continue
 
+			# Logging information after a particular equation finishes
 			if(self.art.converged == True ) :
 				self.logger.info("Convergence Succeeded..!")
 				self.logger.debug("ssep=%f,ssed=%f,sse=%f"%\
@@ -566,7 +568,7 @@ Run phase1  :
 			(self.art.loopiter,np.exp(bd[0])))
 
 		if (yd_ <= 0.0).any() : 
-			self.logger.error(\
+			self.logger.warning(\
 			'Could not deal with complex pain in phase1')
 			self.logger.debug("iter=%d,beta=%f"%\
 				(self.art.loopiter,np.exp(bd[0])))
@@ -639,7 +641,7 @@ Run phase2  :
 			yp_ = prod - slopes
 
 		if (yp_ <= 0.0).any() : 
-			self.logger.error(\
+			self.logger.warning(\
 				'Could not deal with complex pain in phase2')
 			self.logger.debug("iter=%d,alpha=%f"%\
 				(self.art.loopiter,np.exp(bp[0])))
