@@ -947,8 +947,26 @@ class ARFeatLassoSolver(ARSolver) :
 	def _solve_set_regressors(self,expid) :
 		""" This method sets the regressors for all the equation for a
 		given expid """
-		pass
-		
+		self.fsel = LassoARFeatSel(self,expid)
+		self.regressors = self.fsel.find_features()		
+
+		# The regressors that are to be artificially fixed at every 
+		# iteration
+		# This is only necessary for the noinfo and partial info case
+		self._regressors_fix = []
+		nvars = len(self.ss.variables)
+
+		for eqnid,eqn in enumerate(self.ss.equations) : 
+			prod = self.regressors[eqnid]['prod']
+			degrad = self.regressors[eqnid]['degrad']
+			prod_all = degrad_all = range(1,nvars+1)
+			prod = list(set(prod_all).difference(prod))
+			degrad = list(set(degrad_all).difference(degrad))
+			self._regressors_fix.append({
+				'prod':prod,
+				'degrad':degrad
+			})
+
 	@overrides(ARSolver)
 	def solve(self,**kwargs) : 
 		""" The solve method is overriden. Its job is to calculate the 

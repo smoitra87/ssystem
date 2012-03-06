@@ -5,7 +5,7 @@ import logging, sys,os
 import pylab as pl
 
 
-loglevel = logging.INFO
+loglevel = logging.DEBUG
 eps = 10e-7
 
 def plot_pair(v1,v2,labels=['v1','v2']) :

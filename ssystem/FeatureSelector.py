@@ -45,20 +45,29 @@ class FeatSel(object) :
 
 class LassoARFeatSel(FeatSel) : 
 	""" Perform AR FeatSel by doing Lasso"""
-	def __init__(self) : 
-		pass
+	def __init__(self,ar,expid) : 
+		self.ar = ar
+		self.expid = expid
+		self.paramspace = None		
+		self.regressors = None
+		self._preprocessor()
 
 	@overrides(FeatSel)
 	def _preprocessor(self) : 
 		"""	
 		Run preprocessor for Lasso AR Feature Selection 
 		"""
-		pass
+		pass	
 
 	@overrides(FeatSel)
 	def find_features(self) : 
 		""" Find the relevant features using Lasso AR """
-		pass
+		self.regressors = []
+		for eqnid,eqn in enumerate(self.ar.equations) :
+			feats = {'prod':[3],'degrad':[1,2]}
+			self.regressors.append(feats)
+	
+		return self.regressors
 
 
 if __name__ == '__main__' : 
