@@ -12,7 +12,7 @@ This model is mostly meant to work with the Chou2006 S-system model
 """
 
 from parsermanager import ParserManager
-from utility import basedir,logdir,within_tuple
+from utility import basedir,logdir,within_tuple,overrides
 import logging, copy, re, sys, random
 from modifiers import ModifierChou2006
 from FeatureSelector import LassoARFeatSel
@@ -384,7 +384,7 @@ Note bd_i is [log(beta_i) hi1 .. hip]
 				self.logger.debug("h=%r"%(bd[1:]))
 				#util.plot_pair(slopes,prod-degrad,['true','estimate'])
 			else : 
-				self.logger.info("Convergence Failed..!")
+				self.logger.info("Did not converge. But no failures")
 				self.logger.debug("maxiter_exceeded ? %r"%\
 					(self.art.maxiter_exceeded))
 				self.logger.debug("ssep=%f,ssed=%f,sse=%f"%\
@@ -943,6 +943,34 @@ class ARFeatLassoSolver(ARSolver) :
 		self.logger.debug("Calling Constructor for AR")
 		super(ARFeatLassoSolver,self).__init__(ss)
 
+
+	def _solve_set_regressors(self,expid) :
+		""" This method sets the regressors for all the equation for a
+		given expid """
+		pass
+		
+	@overrides(ARSolver)
+	def solve(self,**kwargs) : 
+		""" The solve method is overriden. Its job is to calculate the 
+		regressors, regressors_fix and regressors_true for each exp 
+		value using the Feature Selection technique
+		 """
+		logging.debug('Beginning AR solver')	
+	
+		# List of trackers for all experiments
+		self.all_exp_art = []	
+
+		# Execute the AR core
+		for expid,exp in enumerate(self.ss.experiments) : 
+				self.exp_art = {} # AR tracker for a single experiments
+				self.exp_art['id'] = expid+1
+				self.exp_art['eqns'] = []
+				self._solve_set_regressors(expid)
+				self._core(exp,**kwargs)
+				self.all_exp_art.append(self.exp_art)
+
+		#Run post processing steps
+		self._postprocessor()
 
 
 if __name__ == '__main__' :  

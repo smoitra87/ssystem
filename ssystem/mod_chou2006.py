@@ -32,6 +32,8 @@ class ModifierChou2006(object) :
 		#mod_list5 = [self.mod5_1,self.mod5_2,self.mod5_3,self.mod5_4]
 		mod_list5 = [self.mod5_1]
 
+		# ARFeatSel case
+
 		self.mods = mod_list3
 		
 				
